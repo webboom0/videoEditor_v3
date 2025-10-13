@@ -9,7 +9,7 @@ export default function EffectsPanel({
   return (
     <div className="effects-panel">
       {/* 프레임 시퀀스 이펙트 버튼 */}
-      <button
+      {/* <button
         className={
           selectedEffect && selectedEffect.name === "Frame Sequence"
             ? "active"
@@ -22,7 +22,7 @@ export default function EffectsPanel({
       >
         <i className="fa fa-film"></i>
         <span>프레임</span>
-      </button>
+      </button> */}
 
       {effects.map((effect) => (
         <button
