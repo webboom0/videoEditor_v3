@@ -5,7 +5,7 @@
     "x": 200,
     "y": 100,
     "start": 0,
-    "duration": 100,
+    "duration": 70,
     "align": "center",
     "verticalAlign": "middle",
     "color": "#fff",
@@ -105,7 +105,7 @@
     "type": "audio",
     "src": "/files/music/LOVE.mp3",
     "start": 0,
-    "duration": 180,
+    "duration": 70,
     "name": "LOVE.mp3"
   }
 ]
