@@ -40,6 +40,9 @@
   display: flex;
   align-items: center;
 }
+.timeline-clip.clip-template .timeline-track{
+  height: 100%;
+}
 .timeline-track:hover {
   background-color: #fafafa;
 }
@@ -135,6 +138,7 @@
 }
 .timeline-clip.clip-template {
   background-color: #4caf50;
+  height: 100px;
 }
 
 .clip-resize-handle {

@@ -87,7 +87,10 @@ function Clip({ clip, onDoubleClick, onRemove, onResize, onMove, isSelected }) {
       style={{
         left: `${(clip.start / 600) * 100}%`,
         width: `${(clip.duration / 600) * 100}%`,
-        background: "#4caf50",
+        background: "#fff",
+        color:"#000",
+        border:"solid 2px #333",
+        height:"100px"
       }}
       onDoubleClick={handleDoubleClick}
       onMouseDown={handleMouseDown}

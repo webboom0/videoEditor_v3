@@ -165,7 +165,7 @@ function Timeline({
       </div>
 
       {/* Template Clips Track */}
-      <div className="timeline-track clip-track">
+      <div className="timeline-track clip-track" style={{height: "100px"}}>
         <span className="track-label">템플릿 클립</span>
         <div className="" onClick={handleTimelineClick}>
           {clips.length === 0 && (
