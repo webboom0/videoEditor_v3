@@ -30,7 +30,7 @@
   background: #fff;
   cursor: pointer;
   overflow-y: auto;
-  position: relative;
+  /* position: relative; */
 }
 .timeline-track {
   position: relative;
