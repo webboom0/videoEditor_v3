@@ -308,5 +308,12 @@
     "start": 30,
     "duration": 30,
     "opacity": 0.3
+  },
+   {
+    "type": "audio",
+    "src": "/files/music/DRAMA.mp3",
+    "start": 0,
+    "duration": 180,
+    "name": "DRAMA.mp3"
   }
 ]
