@@ -46,5 +46,12 @@
       { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 1 },
       { "time": 0.5, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
     ]
+  },
+   {
+    "type": "audio",
+    "src": "/files/music/DRAMA.mp3",
+    "start": 0,
+    "duration": 70,
+    "name": "DRAMA.mp3"
   }
 ]
