@@ -1,0 +1,276 @@
+[
+  {
+    "type": "image",
+    "src": "/files/photo/photo_01.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "animation": [
+      {
+        "time": 0,
+        "x": -400,
+        "y": 0,
+        "scale": 0.5,
+        "opacity": 0
+      },
+      {
+        "time": 2,
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "opacity": 1,
+        "easing": "easeOutBounce"
+      }
+    ]
+  },
+  {
+    "type": "text",
+    "text": "Bounce (튕김 효과)",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 0,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial"
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_02.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 5,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "animation": [
+      {
+        "time": 0,
+        "x": 0,
+        "y": 0,
+        "scale": 0.2,
+        "opacity": 0,
+        "rotation": 0
+      },
+      {
+        "time": 2.5,
+        "x": 0,
+        "y": 0,
+        "scale": 1.5,
+        "opacity": 1,
+        "rotation": 6.28,
+        "easing": "easeOutElastic"
+      }
+    ]
+  },
+  {
+    "type": "text",
+    "text": "Elastic (탄성 효과)",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 5,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial"
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_03.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 10,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "animation": [
+      {
+        "time": 0,
+        "x": -300,
+        "y": 0,
+        "scale": 1,
+        "opacity": 0.5
+      },
+      {
+        "time": 2,
+        "x": 0,
+        "y": 0,
+        "scale": 1.2,
+        "opacity": 1,
+        "easing": "easeInOutCubic"
+      }
+    ]
+  },
+  {
+    "type": "text",
+    "text": "Cubic (부드러운 곡선)",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 10,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial"
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_04.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 15,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "animation": [
+      {
+        "time": 0,
+        "x": 0,
+        "y": -300,
+        "scale": 2,
+        "opacity": 0
+      },
+      {
+        "time": 2,
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "opacity": 1,
+        "easing": "easeOutBack"
+      }
+    ]
+  },
+  {
+    "type": "text",
+    "text": "Back (백스윙 효과)",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 15,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial"
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_05.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 20,
+    "duration": 6,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "circle",
+      "animation": [
+        {
+          "time": 0,
+          "x": 0,
+          "y": 0,
+          "radius": 0
+        },
+        {
+          "time": 2,
+          "x": 0,
+          "y": 0,
+          "radius": 800,
+          "easing": "easeOutExpo"
+        }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "text": "Expo + Mask (강한 가속)",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 20,
+    "duration": 6,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial"
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 0,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 5,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 10,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 15,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 20,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  }
+]
+

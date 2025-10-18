@@ -42,12 +42,14 @@
   color: #999;
 }
 .timeline-tracks {
-  height: 200px;
+  max-height: 200px;
   background: #fff;
   cursor: pointer;
   overflow-y: auto;
   /* position: relative; */
 }
+
+
 .timeline-track {
   position: relative;
   height: 30px;

@@ -12,6 +12,8 @@ import CanvasPreview from "./CanvasPreview";
 
 import PropertyBox from "./PropertyBox";
 
+import VideoAnalyzer from "./VideoAnalyzer";
+
 // import layersData from "../data/layers.json"; // 또는 fetch로 불러와도 됨
 
 const TIMELINE_DURATION = 180; // 3분(초)
@@ -57,6 +59,7 @@ function VideoEditor() {
   const [originalLayers, setOriginalLayers] = useState([]);
   const [editModeName, setEditModeName] = useState(""); // 편집 모드에서 표시할 이름
   const [playbackSpeed, setPlaybackSpeed] = useState(1); // 재생 속도 (1 = 정상 속도)
+  const [savedClipTimelinePlayhead, setSavedClipTimelinePlayhead] = useState(0); // 클립 타임라인 playhead 저장
 
   // 오디오 트랙 관련 상태
   const [audioTracks, setAudioTracks] = useState([]);
@@ -69,6 +72,9 @@ function VideoEditor() {
 
   // 프로젝트 저장/불러오기
   const fileInputRef = useRef(null);
+
+  // 비디오 분석기
+  const [showVideoAnalyzer, setShowVideoAnalyzer] = useState(false);
 
   // 오디오 파일 추가 함수 (ObjectURL 사용으로 성능 개선)
   const handleAddAudioTrack = (event) => {
@@ -213,6 +219,36 @@ function VideoEditor() {
     event.target.value = "";
   };
 
+  // 비디오 분석 완료 핸들러
+  const handleVideoAnalysisComplete = (result) => {
+    console.log('비디오 분석 완료:', result);
+
+    // ObjectURL 생성
+    const videoUrl = URL.createObjectURL(result.videoFile);
+
+    // 비디오 레이어 생성
+    const videoLayer = {
+      type: 'video',
+      src: videoUrl,
+      x: 0,
+      y: 0,
+      align: 'center',
+      verticalAlign: 'middle',
+      start: playhead,
+      duration: result.videoLayer.duration,
+      scale: 1,
+      scaleMode: 'cover',
+      opacity: 1,
+      name: result.videoFile.name,
+      _keyframeSuggestions: result.keyframeTimes, // 나중에 사용할 수 있도록 저장
+    };
+
+    // 레이어에 추가
+    setLayers(prev => [...prev, videoLayer]);
+
+    alert(`비디오가 추가되었습니다!\n길이: ${result.videoLayer.duration.toFixed(2)}초\n제안된 키프레임: ${result.keyframeTimes.length}개\n\n제안 시간: ${result.keyframeTimes.map(t => t.toFixed(1)).join(', ')}초`);
+  };
+
   // showTemplates 상태 변화 추적 (최적화를 위해 로그 제거)
 
   // 클립 ID 생성 함수
@@ -283,20 +319,30 @@ function VideoEditor() {
   // 클립 더블클릭 처리
   const handleClipDoubleClick = (clip) => {
     console.log("클립 더블클릭:", clip);
+    
     setSelectedClipId(clip.id);
     setIsClipEditMode(true);
     setEditModeName(clip.name); // 클립 이름으로 설정
     setOriginalLayers([...layers]); // 현재 레이어 백업
     setLayers(clip.layers); // 클립의 레이어로 변경
 
-    // playhead를 안전하게 0으로 설정
+    // 클립 편집 모드는 0초부터 시작
     setPlayhead(0);
     setIsPlaying(false);
 
-    // 클립의 오디오 트랙 찾기
+    // 클립의 오디오 찾기 및 설정
     const audioLayer = clip.layers.find((layer) => layer.type === "audio");
-    console.log("클립에서 찾은 오디오 레이어:", audioLayer);
-    setAudioSrc(audioLayer ? audioLayer.src : "");
+    const newAudioSrc = audioLayer ? audioLayer.src : "";
+    console.log("클립 편집 모드 진입 - 오디오:", newAudioSrc);
+    setAudioSrc(newAudioSrc);
+    
+    // 오디오 요소 리셋
+    setTimeout(() => {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+      }
+    }, 50);
   };
 
   // 클립 편집 모드 종료
@@ -348,20 +394,24 @@ function VideoEditor() {
       setOriginalLayers([]);
       setEditModeName(""); // 편집 모드 이름 초기화
 
-      // 재생 중지 및 플레이헤드를 클립 트랙 처음(0초)으로 이동
-      setIsPlaying(false);
+      // 클립 타임라인으로 돌아갈 때는 0초로 설정 (간단하고 안정적)
+      console.log("클립 타임라인 복귀 - Playhead 0으로 설정");
       setPlayhead(0);
+      setSavedClipTimelinePlayhead(0);
+      setIsPlaying(false);
 
-      // 원래 오디오 소스로 복원
-      const originalAudioLayer = originalLayers.find(
-        (layer) => layer.type === "audio"
-      );
-      const originalAudioSrc = originalAudioLayer ? originalAudioLayer.src : "";
-      console.log(
-        "클립 편집 모드 종료 - 원래 오디오 소스 복원:",
-        originalAudioSrc
-      );
-      setAudioSrc(originalAudioSrc);
+      // 0초 위치의 오디오 찾기
+      setTimeout(() => {
+        const currentAudioSrc = getCurrentAudioSrc();
+        console.log("클립 타임라인 복귀 - 오디오 설정:", currentAudioSrc);
+        setAudioSrc(currentAudioSrc);
+        
+        // 오디오 요소 리셋
+        const audio = audioRef.current;
+        if (audio) {
+          audio.currentTime = 0;
+        }
+      }, 100);
     } else if (isClipEditMode) {
       // 레이어로 편집 모드에서 나올 때
       setLayers(originalLayers);
@@ -809,7 +859,7 @@ function VideoEditor() {
   const handleTemplateButtonClick = () => {
     console.log("템플릿 버튼 클릭됨!");
     setShowTemplates(true);
-    setTemplateFiles(["DRAMA", "LOVE", "WEDDING_01","SMOOTH_ANIMATION_EXAMPLE","MASK_ANIMATION_EXAMPLE"]);
+    setTemplateFiles(["EASING_DEMO", "LOVE", "WEDDING_01","SMOOTH_ANIMATION_EXAMPLE","MASK_ANIMATION_EXAMPLE"]);
     console.log("showTemplates 상태 설정됨:", true);
   };
 
@@ -939,13 +989,13 @@ function VideoEditor() {
 
           // 현재 시간이 이 레이어의 범위 내에 있는지 확인
           if (playhead >= layerAbsoluteStart && playhead < layerAbsoluteEnd) {
-            const adjustedLayer = {
-              ...layer,
+          const adjustedLayer = {
+            ...layer,
               start: layerAbsoluteStart,
               // 레이어 내부 시간으로 정확히 조정 (레이어가 시작된 시점부터의 경과 시간)
               _clipTime: playhead - layerAbsoluteStart,
-            };
-            activeLayers.push(adjustedLayer);
+          };
+          activeLayers.push(adjustedLayer);
           }
         });
       }
@@ -980,14 +1030,14 @@ function VideoEditor() {
     for (const clip of clips) {
       if (playhead >= clip.start && playhead < clip.start + clip.duration) {
         const audioLayer = clip.layers.find((layer) => layer.type === "audio");
-        if (audioLayer) {
-          return audioLayer.src;
+          if (audioLayer) {
+            return audioLayer.src;
+          }
         }
       }
-    }
 
     // 4. 기존 레이어에서도 오디오 찾기
-    const audioLayer = layers.find((layer) => layer.type === "audio");
+      const audioLayer = layers.find((layer) => layer.type === "audio");
     return audioLayer ? audioLayer.src : "";
   };
 
@@ -1226,6 +1276,15 @@ function VideoEditor() {
               style={{ display: "none" }}
             />
 
+            <button
+              onClick={() => setShowVideoAnalyzer(true)}
+              style={{ marginLeft: 10, background: "#9b59b6", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
+              title="비디오 분석"
+            >
+              <i className="fa fa-film" style={{ marginRight: 5 }}></i>
+              비디오 분석
+            </button>
+
             <button 
               onClick={handleSaveProject}
               style={{ marginLeft: 10, background: "#27ae60", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
@@ -1442,6 +1501,14 @@ function VideoEditor() {
             `}
           </style>
         </div>
+      )}
+
+      {/* 비디오 분석기 모달 */}
+      {showVideoAnalyzer && (
+        <VideoAnalyzer
+          onAnalysisComplete={handleVideoAnalysisComplete}
+          onClose={() => setShowVideoAnalyzer(false)}
+        />
       )}
     </div>
   );

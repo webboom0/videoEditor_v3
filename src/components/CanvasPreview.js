@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { EFFECT_MAP } from "../effects/effectUtils";
+import { applyEasing } from "../utils/easingFunctions";
 
 // 이미지 캐싱 및 로딩 함수
 const imageCache = {};
@@ -30,6 +31,7 @@ function CanvasPreview({
 
   // 각 레이어의 위치와 크기 저장
   const layerRects = useRef([]);
+  const animationFrameRef = useRef(null);
 
   // 줌 컨트롤 함수들
   const handleZoomIn = () => {
@@ -111,7 +113,8 @@ function CanvasPreview({
 
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = true; // 비디오 렌더링을 위해 활성화
+    ctx.imageSmoothingQuality = "high";
 
     // 캔버스 전체를 검정색으로 채우기
     ctx.fillStyle = "#000";
@@ -183,7 +186,13 @@ function CanvasPreview({
             }
           }
           // 키프레임 간의 실제 시간 차이로 보간
-          const t = (relTime - prev.time) / (next.time - prev.time);
+          let t = (relTime - prev.time) / (next.time - prev.time);
+          
+          // Easing 함수 적용 (next 키프레임에 easing이 지정되어 있으면)
+          if (next.easing) {
+            t = applyEasing(t, next.easing);
+          }
+          
           animOffsetX = (prev.x ?? 0) + ((next.x ?? 0) - (prev.x ?? 0)) * t;
           animOffsetY = (prev.y ?? 0) + ((next.y ?? 0) - (prev.y ?? 0)) * t;
           animScale =
@@ -279,11 +288,16 @@ function CanvasPreview({
                     break;
                   }
                 }
-                const t = (relTime - prev.time) / (next.time - prev.time);
+                let t = (relTime - prev.time) / (next.time - prev.time);
+                
+                // Easing 함수 적용
+                if (next.easing) {
+                  t = applyEasing(t, next.easing);
+                }
                 
                 // 각 속성 보간
                 Object.keys(next).forEach(key => {
-                  if (key !== 'time' && typeof next[key] === 'number') {
+                  if (key !== 'time' && key !== 'easing' && typeof next[key] === 'number') {
                     const prevVal = prev[key] ?? 0;
                     const nextVal = next[key] ?? 0;
                     maskProps[key] = prevVal + (nextVal - prevVal) * t;
@@ -427,14 +441,20 @@ function CanvasPreview({
           video.crossOrigin = "anonymous";
           video.muted = true;
           video.playsInline = true;
+          video.preload = "auto";
           videoRefs.current[layer.src] = video;
         }
-        video.currentTime = Math.max(0, currentTime - layer.start);
+        
+        // 비디오 시간 설정 최적화 (0.2초 이상 차이날 때만 seek)
+        const targetTime = Math.max(0, currentTime - layer.start);
+        if (Math.abs(video.currentTime - targetTime) > 0.2) {
+          video.currentTime = targetTime;
+        }
 
         // 비디오 메타데이터가 준비되지 않았으면 그리지 않음
         const videoW = video.videoWidth;
         const videoH = video.videoHeight;
-        if (!videoW || !videoH) return;
+        if (!videoW || !videoH || video.readyState < 2) return;
 
         let renderScale = layer.scale ?? 1;
 
@@ -527,7 +547,13 @@ function CanvasPreview({
               break;
             }
           }
-          const t = (relTime - prev.time) / (next.time - prev.time);
+          let t = (relTime - prev.time) / (next.time - prev.time);
+          
+          // Easing 함수 적용 (next 키프레임에 easing이 지정되어 있으면)
+          if (next.easing) {
+            t = applyEasing(t, next.easing);
+          }
+          
           x = (prev.x ?? x) + ((next.x ?? prev.x ?? x) - (prev.x ?? x)) * t;
           y = (prev.y ?? y) + ((next.y ?? prev.y ?? y) - (prev.y ?? y)) * t;
           scale =

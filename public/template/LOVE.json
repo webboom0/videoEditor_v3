@@ -1,5 +1,18 @@
 [
   {
+    "type": "video",
+    "src": "/files/video/aa.mp4",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 70,
+    "duration":20,
+    "scale": 1,
+    "scaleMode": "cover",
+    "opacity": 1
+  },
+  {
     "type": "text",
     "text": "A Lover's Concerto",
     "x": 200,
@@ -13,12 +26,12 @@
     "fontFamily": "Arial",
     "animation": [
       { "time": 0, "x": 400, "y": 500, "scale": 0.3, "opacity": 0, "rotation": 0.5 },
-      { "time": 2, "x": 400, "y": 450, "scale": 0.6, "opacity": 0.5, "rotation": 0.2 },
-      { "time": 4, "x": 400, "y": 400, "scale": 0.9, "opacity": 1, "rotation": 0 },
-      { "time": 6, "x": 400, "y": 400, "scale": 1, "opacity": 1, "rotation": 0 },
-      { "time": 65, "x": 400, "y": 400, "scale": 1, "opacity": 1, "rotation": 0 },
-      { "time": 68, "x": 400, "y": 350, "scale": 0.7, "opacity": 0.3, "rotation": -0.3 },
-      { "time": 70, "x": 400, "y": 300, "scale": 0.3, "opacity": 0, "rotation": -0.5 }
+      { "time": 2, "x": 400, "y": 450, "scale": 0.6, "opacity": 0.5, "rotation": 0.2, "easing": "easeOutCubic" },
+      { "time": 4, "x": 400, "y": 400, "scale": 0.9, "opacity": 1, "rotation": 0, "easing": "easeOutQuad" },
+      { "time": 6, "x": 400, "y": 400, "scale": 1, "opacity": 1, "rotation": 0, "easing": "easeInOutSine" },
+      { "time": 65, "x": 400, "y": 400, "scale": 1, "opacity": 1, "rotation": 0, "easing": "linear" },
+      { "time": 68, "x": 400, "y": 350, "scale": 0.7, "opacity": 0.3, "rotation": -0.3, "easing": "easeInQuad" },
+      { "time": 70, "x": 400, "y": 300, "scale": 0.3, "opacity": 0, "rotation": -0.5, "easing": "easeInCubic" }
     ]
   },
   {
@@ -34,15 +47,15 @@
     "scaleMode": "fit",
     "animation": [
       { "time": 0, "x": -300, "y": -100, "scale": 0.6, "opacity": 0, "rotation": -0.4 },
-      { "time": 2, "x": -150, "y": -50, "scale": 0.8, "opacity": 0.5, "rotation": -0.2 },
-      { "time": 4, "x": 0, "y": 0, "scale": 1, "opacity": 1, "rotation": 0 },
-      { "time": 8, "x": 50, "y": 30, "scale": 1.3, "opacity": 1, "rotation": 0.1 },
-      { "time": 12, "x": -30, "y": -20, "scale": 1.4, "opacity": 1, "rotation": -0.05 },
-      { "time": 16, "x": 30, "y": 20, "scale": 1.5, "opacity": 1, "rotation": 0.05 },
-      { "time": 20, "x": 0, "y": 0, "scale": 1.3, "opacity": 1, "rotation": 0 },
-      { "time": 25, "x": 100, "y": 50, "scale": 1, "opacity": 0.7, "rotation": 0.2 },
-      { "time": 28, "x": 200, "y": 100, "scale": 0.7, "opacity": 0.3, "rotation": 0.4 },
-      { "time": 30, "x": 300, "y": 150, "scale": 0.5, "opacity": 0, "rotation": 0.5 }
+      { "time": 2, "x": -150, "y": -50, "scale": 0.8, "opacity": 0.5, "rotation": -0.2, "easing": "easeOutQuad" },
+      { "time": 4, "x": 0, "y": 0, "scale": 1, "opacity": 1, "rotation": 0, "easing": "easeOutCubic" },
+      { "time": 8, "x": 50, "y": 30, "scale": 1.3, "opacity": 1, "rotation": 0.1, "easing": "easeInOutSine" },
+      { "time": 12, "x": -30, "y": -20, "scale": 1.4, "opacity": 1, "rotation": -0.05, "easing": "easeInOutSine" },
+      { "time": 16, "x": 30, "y": 20, "scale": 1.5, "opacity": 1, "rotation": 0.05, "easing": "easeInOutSine" },
+      { "time": 20, "x": 0, "y": 0, "scale": 1.3, "opacity": 1, "rotation": 0, "easing": "easeInOutQuad" },
+      { "time": 25, "x": 100, "y": 50, "scale": 1, "opacity": 0.7, "rotation": 0.2, "easing": "easeInQuad" },
+      { "time": 28, "x": 200, "y": 100, "scale": 0.7, "opacity": 0.3, "rotation": 0.4, "easing": "easeInCubic" },
+      { "time": 30, "x": 300, "y": 150, "scale": 0.5, "opacity": 0, "rotation": 0.5, "easing": "easeInQuart" }
     ]
   },
   {
@@ -58,18 +71,18 @@
     "scaleMode": "fit",
     "animation": [
       { "time": 0, "x": 0, "y": 300, "scale": 0.4, "opacity": 0, "rotation": 1.57 },
-      { "time": 2, "x": 0, "y": 200, "scale": 0.6, "opacity": 0.3, "rotation": 1 },
-      { "time": 4, "x": 0, "y": 100, "scale": 0.8, "opacity": 0.6, "rotation": 0.5 },
-      { "time": 6, "x": 0, "y": 0, "scale": 1, "opacity": 1, "rotation": 0 },
-      { "time": 10, "x": -50, "y": 30, "scale": 1.2, "opacity": 1, "rotation": -0.1 },
-      { "time": 14, "x": 50, "y": -30, "scale": 1.3, "opacity": 1, "rotation": 0.1 },
-      { "time": 18, "x": -40, "y": 20, "scale": 1.4, "opacity": 1, "rotation": -0.08 },
-      { "time": 22, "x": 40, "y": -20, "scale": 1.5, "opacity": 1, "rotation": 0.08 },
-      { "time": 26, "x": 0, "y": 0, "scale": 1.4, "opacity": 1, "rotation": 0 },
-      { "time": 30, "x": 0, "y": 0, "scale": 1.2, "opacity": 1, "rotation": 0 },
-      { "time": 35, "x": -100, "y": -50, "scale": 0.9, "opacity": 0.6, "rotation": -0.3 },
-      { "time": 38, "x": -200, "y": -100, "scale": 0.6, "opacity": 0.3, "rotation": -0.5 },
-      { "time": 40, "x": -300, "y": -150, "scale": 0.3, "opacity": 0, "rotation": -0.8 }
+      { "time": 2, "x": 0, "y": 200, "scale": 0.6, "opacity": 0.3, "rotation": 1, "easing": "easeOutQuad" },
+      { "time": 4, "x": 0, "y": 100, "scale": 0.8, "opacity": 0.6, "rotation": 0.5, "easing": "easeOutCubic" },
+      { "time": 6, "x": 0, "y": 0, "scale": 1, "opacity": 1, "rotation": 0, "easing": "easeOutQuart" },
+      { "time": 10, "x": -50, "y": 30, "scale": 1.2, "opacity": 1, "rotation": -0.1, "easing": "easeInOutSine" },
+      { "time": 14, "x": 50, "y": -30, "scale": 1.3, "opacity": 1, "rotation": 0.1, "easing": "easeInOutSine" },
+      { "time": 18, "x": -40, "y": 20, "scale": 1.4, "opacity": 1, "rotation": -0.08, "easing": "easeInOutSine" },
+      { "time": 22, "x": 40, "y": -20, "scale": 1.5, "opacity": 1, "rotation": 0.08, "easing": "easeInOutSine" },
+      { "time": 26, "x": 0, "y": 0, "scale": 1.4, "opacity": 1, "rotation": 0, "easing": "easeInOutQuad" },
+      { "time": 30, "x": 0, "y": 0, "scale": 1.2, "opacity": 1, "rotation": 0, "easing": "easeInOutQuad" },
+      { "time": 35, "x": -100, "y": -50, "scale": 0.9, "opacity": 0.6, "rotation": -0.3, "easing": "easeInQuad" },
+      { "time": 38, "x": -200, "y": -100, "scale": 0.6, "opacity": 0.3, "rotation": -0.5, "easing": "easeInCubic" },
+      { "time": 40, "x": -300, "y": -150, "scale": 0.3, "opacity": 0, "rotation": -0.8, "easing": "easeInQuart" }
     ]
   },
   {
