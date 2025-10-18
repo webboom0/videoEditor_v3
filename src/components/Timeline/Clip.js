@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 
-function Clip({ clip, onDoubleClick, onRemove, onResize, onMove, isSelected }) {
+function Clip({ clip, onDoubleClick, onRemove, onResize, onMove, onSelect, isSelected }) {
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [resizeStartX, setResizeStartX] = useState(0);
@@ -18,13 +18,25 @@ function Clip({ clip, onDoubleClick, onRemove, onResize, onMove, isSelected }) {
     onRemove(clip.id);
   };
 
+  const handleClick = (e) => {
+    // 버튼이나 리사이즈 핸들이 아닐 때만 선택
+    if (!e.target.closest('button') && !e.target.classList.contains('clip-resize-handle')) {
+      if (onSelect) {
+        onSelect(clip.id);
+      }
+    }
+  };
+
   const handleMouseDown = (e) => {
+    // 먼저 클립 선택
+    handleClick(e);
+    
     if (e.target.classList.contains("clip-resize-handle")) {
       setIsResizing(true);
       setResizeStartX(e.clientX);
       setResizeStartWidth(clipRef.current.offsetWidth);
       e.preventDefault();
-    } else {
+    } else if (!e.target.closest('button')) {
       setIsDragging(true);
       setDragStartX(e.clientX);
       setDragStartLeft(clip.start);
@@ -78,6 +90,9 @@ function Clip({ clip, onDoubleClick, onRemove, onResize, onMove, isSelected }) {
     dragStartLeft,
   ]);
 
+  // 썸네일 이미지 URL
+  const thumbnailUrl = clip.thumbnail || `/template/thumb/${clip.name}.png`;
+
   return (
     <div
       ref={clipRef}
@@ -87,8 +102,10 @@ function Clip({ clip, onDoubleClick, onRemove, onResize, onMove, isSelected }) {
       style={{
         left: `${(clip.start / 600) * 100}%`,
         width: `${(clip.duration / 600) * 100}%`,
-        background: "#fff",
-        color:"#000",
+        background: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${thumbnailUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        color:"#fff",
         border:"solid 2px #333",
         height:"100px"
       }}

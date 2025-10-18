@@ -1,0 +1,295 @@
+[
+  {
+    "type": "image",
+    "src": "/files/photo/photo_01.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "circle",
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "radius": 0 },
+        { "time": 1.5, "x": 0, "y": 0, "radius": 300 },
+        { "time": 3, "x": 0, "y": 0, "radius": 800 }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "text": "원형 마스크",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 0,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial",
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
+      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_02.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 5,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "horizontal",
+      "animation": [
+        { "time": 0, "progress": 0 },
+        { "time": 2, "progress": 1 }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "text": "좌우 열림 마스크",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 5,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial",
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
+      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_03.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 10,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "vertical",
+      "animation": [
+        { "time": 0, "progress": 0 },
+        { "time": 2, "progress": 1 }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "text": "상하 열림 마스크",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 10,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial",
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
+      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_04.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 15,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "rect",
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "width": 100, "height": 100 },
+        { "time": 1.5, "x": 0, "y": 0, "width": 800, "height": 600 },
+        { "time": 3, "x": 0, "y": 0, "width": 1920, "height": 1080 }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "text": "사각형 마스크",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 15,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial",
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
+      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_05.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 20,
+    "duration": 5,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "ellipse",
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "radiusX": 50, "radiusY": 200 },
+        { "time": 1.5, "x": 0, "y": 0, "radiusX": 400, "radiusY": 300 },
+        { "time": 3, "x": 0, "y": 0, "radiusX": 1000, "radiusY": 600 }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "text": "타원형 마스크",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 20,
+    "duration": 5,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial",
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
+      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_06.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 25,
+    "duration": 6,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "circle",
+      "animation": [
+        { "time": 0, "x": -500, "y": -300, "radius": 100 },
+        { "time": 1.5, "x": 0, "y": 0, "radius": 400 },
+        { "time": 3, "x": 500, "y": 300, "radius": 100 }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "text": "원형 마스크 이동",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 25,
+    "duration": 6,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial",
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
+      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+    ]
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 0,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 5,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 10,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 15,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 20,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 25,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
+  }
+]
+

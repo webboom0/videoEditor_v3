@@ -58,14 +58,162 @@ function VideoEditor() {
   const [editModeName, setEditModeName] = useState(""); // 편집 모드에서 표시할 이름
   const [playbackSpeed, setPlaybackSpeed] = useState(1); // 재생 속도 (1 = 정상 속도)
 
+  // 오디오 트랙 관련 상태
+  const [audioTracks, setAudioTracks] = useState([]);
+  const [selectedAudioTrackId, setSelectedAudioTrackId] = useState(null);
+  const audioFileInputRef = useRef(null);
+
   // 템플릿 추가 방식 선택 모달
   const [showTemplateChoice, setShowTemplateChoice] = useState(false);
   const [selectedTemplateData, setSelectedTemplateData] = useState(null);
 
-  // showTemplates 상태 변화 추적
-  useEffect(() => {
-    console.log("showTemplates 상태 변경됨:", showTemplates);
-  }, [showTemplates]);
+  // 프로젝트 저장/불러오기
+  const fileInputRef = useRef(null);
+
+  // 오디오 파일 추가 함수 (ObjectURL 사용으로 성능 개선)
+  const handleAddAudioTrack = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // ObjectURL 사용으로 메모리 효율 개선
+    const audioUrl = URL.createObjectURL(file);
+    
+    const audioTrack = {
+      id: `audio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: file.name,
+      src: audioUrl,
+      start: 0,
+      duration: 600, // 기본 10분
+      volume: 1,
+      file: file, // 저장을 위해 파일 참조 유지
+    };
+    setAudioTracks((prev) => [...prev, audioTrack]);
+    alert(`오디오 트랙이 추가되었습니다: ${file.name}`);
+    
+    event.target.value = "";
+  };
+
+  // 오디오 트랙 삭제
+  const handleRemoveAudioTrack = (trackId) => {
+    setAudioTracks((prev) => prev.filter((track) => track.id !== trackId));
+    if (selectedAudioTrackId === trackId) {
+      setSelectedAudioTrackId(null);
+    }
+  };
+
+  // 오디오 트랙 위치/길이 변경
+  const handleAudioTrackMove = (trackId, newStart) => {
+    setAudioTracks((prev) =>
+      prev.map((track) =>
+        track.id === trackId ? { ...track, start: Math.max(0, newStart) } : track
+      )
+    );
+  };
+
+  const handleAudioTrackResize = (trackId, newDuration) => {
+    setAudioTracks((prev) =>
+      prev.map((track) =>
+        track.id === trackId ? { ...track, duration: Math.max(1, newDuration) } : track
+      )
+    );
+  };
+
+  // 프로젝트 저장 함수 (오디오 파일을 Base64로 변환)
+  const handleSaveProject = async () => {
+    // 오디오 트랙의 파일을 Base64로 변환
+    const audioTracksForSave = await Promise.all(
+      audioTracks.map(async (track) => {
+        if (track.file) {
+          // 파일이 있으면 Base64로 변환
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              resolve({
+                ...track,
+                src: e.target.result,
+                file: undefined, // 파일 객체 제거
+              });
+            };
+            reader.readAsDataURL(track.file);
+          });
+        }
+        return track;
+      })
+    );
+
+    const projectData = {
+      name: "프로젝트_" + new Date().toISOString().slice(0, 19).replace(/:/g, "-"),
+      layers: layers,
+      clips: clips,
+      audioTracks: audioTracksForSave,
+      audioSrc: audioSrc,
+      playhead: playhead,
+      createdAt: new Date().toISOString(),
+    };
+
+    const dataStr = JSON.stringify(projectData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${projectData.name}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    alert("프로젝트가 저장되었습니다!");
+  };
+
+  // 프로젝트 불러오기 함수
+  const handleLoadProject = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const projectData = JSON.parse(e.target.result);
+        
+        // 프로젝트 데이터 복원
+        if (projectData.layers) {
+          setLayers(projectData.layers);
+        }
+        if (projectData.clips) {
+          setClips(projectData.clips);
+        }
+        if (projectData.audioTracks) {
+          setAudioTracks(projectData.audioTracks);
+        }
+        if (projectData.audioSrc) {
+          setAudioSrc(projectData.audioSrc);
+        }
+        if (projectData.playhead !== undefined) {
+          setPlayhead(projectData.playhead);
+        } else {
+          setPlayhead(0);
+        }
+
+        // 선택 상태 초기화
+        setSelectedLayerIndex(null);
+        setSelectedClipId(null);
+        setSelectedAudioTrackId(null);
+        setIsClipEditMode(false);
+        setIsPlaying(false);
+
+        alert(`프로젝트가 불러와졌습니다!\n클립: ${projectData.clips?.length || 0}개\n레이어: ${projectData.layers?.length || 0}개\n오디오 트랙: ${projectData.audioTracks?.length || 0}개`);
+      } catch (error) {
+        console.error("프로젝트 불러오기 오류:", error);
+        alert("프로젝트 파일을 읽을 수 없습니다.");
+      }
+    };
+    reader.readAsText(file);
+
+    // 파일 입력 초기화 (같은 파일을 다시 선택할 수 있도록)
+    event.target.value = "";
+  };
+
+  // showTemplates 상태 변화 추적 (최적화를 위해 로그 제거)
 
   // 클립 ID 생성 함수
   const generateClipId = () => {
@@ -354,23 +502,13 @@ function VideoEditor() {
     }
   }, [layers]);
 
-  // clips 상태 변화 추적
-  useEffect(() => {
-    console.log("clips 상태 변화:", clips);
-  }, [clips]);
+  // clips 상태 변화 추적 (최적화를 위해 로그 제거)
 
-  // 애니메이션 프레임
+  // 애니메이션 프레임 (최적화)
   useEffect(() => {
-    console.log("애니메이션 프레임 useEffect 실행:", {
-      isPlaying,
-      audioSrc,
-      playhead,
-      isClipEditMode,
-    });
 
     // 오디오가 있을 때는 애니메이션 프레임을 사용하지 않음
     if (isPlaying && !audioSrc) {
-      console.log("애니메이션 프레임 시작 - 오디오 없음");
       // 오디오가 없을 때만 애니메이션 사용
       const startTime = Date.now() - playhead * 1000; // 밀리초 단위로 변환
       let lastUpdateTime = 0;
@@ -419,13 +557,8 @@ function VideoEditor() {
     return () => cancelAnimationFrame(animationRef.current);
   }, [isPlaying, playbackSpeed, audioSrc]); // playhead 의존성 제거
 
-  // 오디오 동기화
+  // 오디오 동기화 (최적화)
   useEffect(() => {
-    console.log("오디오 동기화 useEffect 실행:", {
-      isPlaying,
-      audioSrc,
-      playhead,
-    });
     let animationId;
     let lastUpdateTime = 0;
     const updateInterval = 16; // 약 60fps로 제한
@@ -455,20 +588,16 @@ function VideoEditor() {
       // 오디오가 있을 때만 오디오 동기화 사용
       const audio = audioRef.current;
       if (audio && audioSrc) {
-        console.log("오디오 재생 시작:", { audioSrc, playhead });
         // 오디오 재생 시작
-        // playhead 값이 유효한지 확인
         if (isFinite(playhead) && playhead >= 0) {
           audio.currentTime = playhead;
         } else {
-          console.warn("유효하지 않은 playhead 값, 0으로 설정:", playhead);
           audio.currentTime = 0;
           setPlayhead(0);
         }
         audio
           .play()
           .then(() => {
-            console.log("오디오 재생 성공, 동기화 시작");
             // 재생이 시작되면 동기화 시작
             lastUpdateTime = Date.now();
             animationId = requestAnimationFrame(syncPlayhead);
@@ -476,15 +605,11 @@ function VideoEditor() {
           .catch((error) => {
             console.error("오디오 재생 실패:", error);
             // 오디오 재생 실패 시 애니메이션으로 대체
-            console.log("애니메이션으로 대체");
             setAudioSrc(""); // 오디오 소스를 비워서 애니메이션 모드로 전환
           });
-      } else {
-        console.log("오디오 없음 - 애니메이션으로 처리");
       }
       // 오디오가 없으면 애니메이션 프레임에서 처리됨
     } else {
-      console.log("재생 중지");
       // 오디오 일시정지
       const audio = audioRef.current;
       if (audio) {
@@ -684,7 +809,7 @@ function VideoEditor() {
   const handleTemplateButtonClick = () => {
     console.log("템플릿 버튼 클릭됨!");
     setShowTemplates(true);
-    setTemplateFiles(["DRAMA", "LOVE", "WEDDING_01"]);
+    setTemplateFiles(["DRAMA", "LOVE", "WEDDING_01","SMOOTH_ANIMATION_EXAMPLE","MASK_ANIMATION_EXAMPLE"]);
     console.log("showTemplates 상태 설정됨:", true);
   };
 
@@ -806,17 +931,22 @@ function VideoEditor() {
 
       // 현재 시간이 클립 범위 내에 있는지 확인
       if (playhead >= clipStart && playhead < clipEnd) {
-        const clipTime = playhead - clipStart;
-
         // 클립의 레이어들을 현재 시간에 맞게 조정
         clip.layers.forEach((layer) => {
-          const adjustedLayer = {
-            ...layer,
-            start: layer.start + clipStart,
-            // 클립 내부 시간으로 조정
-            _clipTime: clipTime,
-          };
-          activeLayers.push(adjustedLayer);
+          // 레이어의 절대 시작/종료 시간 계산
+          const layerAbsoluteStart = clipStart + layer.start;
+          const layerAbsoluteEnd = layerAbsoluteStart + layer.duration;
+
+          // 현재 시간이 이 레이어의 범위 내에 있는지 확인
+          if (playhead >= layerAbsoluteStart && playhead < layerAbsoluteEnd) {
+            const adjustedLayer = {
+              ...layer,
+              start: layerAbsoluteStart,
+              // 레이어 내부 시간으로 정확히 조정 (레이어가 시작된 시점부터의 경과 시간)
+              _clipTime: playhead - layerAbsoluteStart,
+            };
+            activeLayers.push(adjustedLayer);
+          }
         });
       }
     });
@@ -824,78 +954,50 @@ function VideoEditor() {
     return activeLayers;
   };
 
-  // 현재 활성화된 오디오 소스 계산
+  // 현재 활성화된 오디오 소스 계산 (오디오 트랙 우선) - 최적화
   const getCurrentAudioSrc = () => {
     // playhead 값이 유효하지 않으면 빈 문자열 반환
     if (!isFinite(playhead) || playhead < 0) {
-      console.warn("유효하지 않은 playhead 값:", playhead);
       return "";
     }
 
-    console.log("getCurrentAudioSrc 호출:", {
-      isClipEditMode,
-      playhead,
-      clipsCount: clips.length,
-      layersCount: layers.length,
-    });
-
-    if (isClipEditMode) {
-      // 클립 편집 모드에서는 현재 레이어에서 오디오 찾기
-      const audioLayer = layers.find((layer) => layer.type === "audio");
-      const result = audioLayer ? audioLayer.src : "";
-      console.log("클립 편집 모드 오디오 소스:", result);
-      return result;
-    } else {
-      // 클립 트랙 모드에서는 현재 시간에 해당하는 클립의 오디오 찾기
-      console.log("클립 트랙 모드 - 클립 검색 중...");
-      for (const clip of clips) {
-        const clipStart = clip.start;
-        const clipEnd = clip.start + clip.duration;
-
-        console.log(`클립 "${clip.name}" 검사:`, {
-          clipStart,
-          clipEnd,
-          playhead,
-          isInRange: playhead >= clipStart && playhead < clipEnd,
-        });
-
-        if (playhead >= clipStart && playhead < clipEnd) {
-          const audioLayer = clip.layers.find(
-            (layer) => layer.type === "audio"
-          );
-          if (audioLayer) {
-            console.log(`클립 "${clip.name}"에서 오디오 찾음:`, audioLayer.src);
-            return audioLayer.src;
-          } else {
-            console.log(`클립 "${clip.name}"에 오디오 레이어 없음`);
-          }
+    // 1. 오디오 트랙 확인 (최우선)
+    if (!isClipEditMode && audioTracks.length > 0) {
+      for (const track of audioTracks) {
+        if (playhead >= track.start && playhead < track.start + track.duration) {
+          return track.src;
         }
       }
-
-      // 기존 레이어에서도 오디오 찾기
-      const audioLayer = layers.find((layer) => layer.type === "audio");
-      const result = audioLayer ? audioLayer.src : "";
-      console.log("기존 레이어에서 오디오 소스:", result);
-      return result;
     }
+
+    // 2. 클립 편집 모드에서는 현재 레이어에서 오디오 찾기
+    if (isClipEditMode) {
+      const audioLayer = layers.find((layer) => layer.type === "audio");
+      return audioLayer ? audioLayer.src : "";
+    } 
+    
+    // 3. 클립 트랙 모드에서는 현재 시간에 해당하는 클립의 오디오 찾기
+    for (const clip of clips) {
+      if (playhead >= clip.start && playhead < clip.start + clip.duration) {
+        const audioLayer = clip.layers.find((layer) => layer.type === "audio");
+        if (audioLayer) {
+          return audioLayer.src;
+        }
+      }
+    }
+
+    // 4. 기존 레이어에서도 오디오 찾기
+    const audioLayer = layers.find((layer) => layer.type === "audio");
+    return audioLayer ? audioLayer.src : "";
   };
 
-  // 현재 오디오 소스 업데이트
+  // 현재 오디오 소스 업데이트 (최적화)
   useEffect(() => {
     const currentAudioSrc = getCurrentAudioSrc();
-    console.log("오디오 소스 업데이트 useEffect:", {
-      currentAudioSrc,
-      previousAudioSrc: audioSrc,
-      isDifferent: currentAudioSrc !== audioSrc,
-      playhead,
-      isClipEditMode,
-    });
-
     if (currentAudioSrc !== audioSrc) {
-      console.log("오디오 소스 변경:", { from: audioSrc, to: currentAudioSrc });
       setAudioSrc(currentAudioSrc);
     }
-  }, [playhead, clips, layers, isClipEditMode]);
+  }, [playhead, clips, layers, audioTracks, isClipEditMode]);
 
   return (
     <div className="video-editor">
@@ -1032,15 +1134,6 @@ function VideoEditor() {
 
             <button
               onClick={() => {
-                console.log("재생 버튼 클릭:", {
-                  isPlaying,
-                  audioSrc,
-                  playhead,
-                  layers: layers.length,
-                  clips: clips.length,
-                  isClipEditMode,
-                });
-
                 if (!isPlaying && showTemplates) {
                   setShowTemplates(false); // 재생 시작 시 템플릿 모달 닫기
                 }
@@ -1048,10 +1141,6 @@ function VideoEditor() {
                 // 클립 트랙 모드에서 재생 시작 시 현재 시간에 해당하는 클립의 오디오 즉시 설정
                 if (!isPlaying && !isClipEditMode && clips.length > 0) {
                   const currentAudioSrc = getCurrentAudioSrc();
-                  console.log(
-                    "클립 트랙 재생 시작 - 현재 오디오 소스 설정:",
-                    currentAudioSrc
-                  );
                   if (currentAudioSrc && currentAudioSrc !== audioSrc) {
                     setAudioSrc(currentAudioSrc);
                   }
@@ -1097,19 +1186,71 @@ function VideoEditor() {
 
             <button
               onClick={() => {
-                if (selectedLayerIndex !== null && layers[selectedLayerIndex]) {
+                // 오디오 트랙이 선택된 경우
+                if (selectedAudioTrackId !== null) {
+                  handleRemoveAudioTrack(selectedAudioTrackId);
+                }
+                // 클립이 선택된 경우
+                else if (selectedClipId !== null) {
+                  handleClipRemove(selectedClipId);
+                }
+                // 레이어가 선택된 경우
+                else if (selectedLayerIndex !== null && layers[selectedLayerIndex]) {
                   setLayers((layers) =>
                     layers.filter((_, i) => i !== selectedLayerIndex)
                   );
-
                   setSelectedLayerIndex(null);
                 }
               }}
-              disabled={selectedLayerIndex === null}
+              disabled={selectedLayerIndex === null && selectedClipId === null && selectedAudioTrackId === null}
               style={{ marginLeft: 10 }}
+              title="선택된 항목 삭제"
             >
               <i className="fa fa-trash"></i>
             </button>
+
+            <button
+              onClick={() => audioFileInputRef.current?.click()}
+              style={{ marginLeft: 10, background: "#e74c3c", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
+              title="오디오 트랙 추가"
+            >
+              <i className="fa fa-music" style={{ marginRight: 5 }}></i>
+              음악 추가
+            </button>
+
+            <input
+              ref={audioFileInputRef}
+              type="file"
+              accept="audio/*"
+              onChange={handleAddAudioTrack}
+              style={{ display: "none" }}
+            />
+
+            <button 
+              onClick={handleSaveProject}
+              style={{ marginLeft: 10, background: "#27ae60", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
+              title="프로젝트 저장"
+            >
+              <i className="fa fa-save" style={{ marginRight: 5 }}></i>
+              저장
+            </button>
+
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              style={{ marginLeft: 5, background: "#2980b9", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
+              title="프로젝트 불러오기"
+            >
+              <i className="fa fa-folder-open" style={{ marginRight: 5 }}></i>
+              불러오기
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleLoadProject}
+              style={{ display: "none" }}
+            />
 
             <button onClick={handleExport} disabled={isExporting}>
               {isExporting ? "녹화 중..." : "Export"}
@@ -1119,12 +1260,19 @@ function VideoEditor() {
           <Timeline
             mediaFiles={layers}
             clips={clips}
+            audioTracks={audioTracks}
             onRemove={handleRemove}
             onClipDoubleClick={handleClipDoubleClick}
             onClipRemove={handleClipRemove}
             onClipResize={handleClipResize}
             onClipMove={handleClipMove}
+            onSelectClip={setSelectedClipId}
             selectedClipId={selectedClipId}
+            onAudioTrackRemove={handleRemoveAudioTrack}
+            onAudioTrackResize={handleAudioTrackResize}
+            onAudioTrackMove={handleAudioTrackMove}
+            onSelectAudioTrack={setSelectedAudioTrackId}
+            selectedAudioTrackId={selectedAudioTrackId}
             selectedLayerIndex={selectedLayerIndex}
             onSelectLayer={setSelectedLayerIndex}
             playhead={playhead}

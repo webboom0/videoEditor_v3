@@ -151,7 +151,8 @@ function CanvasPreview({
       let animOffsetX = 0,
         animOffsetY = 0,
         animScale = 1,
-        animOpacity = 1;
+        animOpacity = 1,
+        animRotation = 0;
       if (Array.isArray(layer.animation) && layer.animation.length > 1) {
         // 클립 시간이 있으면 클립 시간을 사용, 없으면 일반 시간 사용
         const relTime =
@@ -166,11 +167,13 @@ function CanvasPreview({
           animOffsetY = prev.y ?? 0;
           animScale = prev.scale ?? 1;
           animOpacity = prev.opacity ?? layer.opacity ?? 1;
+          animRotation = prev.rotation ?? 0;
         } else if (relTime >= next.time) {
           animOffsetX = next.x ?? 0;
           animOffsetY = next.y ?? 0;
           animScale = next.scale ?? 1;
           animOpacity = next.opacity ?? layer.opacity ?? 1;
+          animRotation = next.rotation ?? 0;
         } else {
           for (let i = 1; i < layer.animation.length; i++) {
             if (layer.animation[i].time > relTime) {
@@ -188,6 +191,8 @@ function CanvasPreview({
           const prevOpacity = prev.opacity ?? layer.opacity ?? 1;
           const nextOpacity = next.opacity ?? layer.opacity ?? 1;
           animOpacity = prevOpacity + (nextOpacity - prevOpacity) * t;
+          animRotation =
+            (prev.rotation ?? 0) + ((next.rotation ?? 0) - (prev.rotation ?? 0)) * t;
         }
       } else {
         animOpacity = layer.opacity ?? 1;
@@ -244,7 +249,84 @@ function CanvasPreview({
           ctx.save();
           ctx.globalAlpha = animOpacity;
           ctx.translate(finalX, finalY);
+          ctx.rotate(animRotation);
           ctx.scale(renderScale, renderScale);
+
+          // 마스크 기능 적용
+          if (layer.mask) {
+            const relTime =
+              layer._clipTime !== undefined
+                ? layer._clipTime
+                : currentTime - layer.start;
+            
+            let maskProps = {};
+            
+            // 마스크 애니메이션 보간
+            if (Array.isArray(layer.mask.animation) && layer.mask.animation.length > 0) {
+              const maskAnim = layer.mask.animation;
+              
+              if (relTime <= maskAnim[0].time) {
+                maskProps = { ...maskAnim[0] };
+              } else if (relTime >= maskAnim[maskAnim.length - 1].time) {
+                maskProps = { ...maskAnim[maskAnim.length - 1] };
+              } else {
+                let prev = maskAnim[0];
+                let next = maskAnim[maskAnim.length - 1];
+                for (let i = 1; i < maskAnim.length; i++) {
+                  if (maskAnim[i].time > relTime) {
+                    next = maskAnim[i];
+                    prev = maskAnim[i - 1];
+                    break;
+                  }
+                }
+                const t = (relTime - prev.time) / (next.time - prev.time);
+                
+                // 각 속성 보간
+                Object.keys(next).forEach(key => {
+                  if (key !== 'time' && typeof next[key] === 'number') {
+                    const prevVal = prev[key] ?? 0;
+                    const nextVal = next[key] ?? 0;
+                    maskProps[key] = prevVal + (nextVal - prevVal) * t;
+                  }
+                });
+              }
+            }
+            
+            // 마스크 타입별 클리핑 처리
+            ctx.save();
+            ctx.beginPath();
+            
+            if (layer.mask.type === "circle") {
+              const radius = maskProps.radius ?? 0;
+              const maskX = maskProps.x ?? 0;
+              const maskY = maskProps.y ?? 0;
+              ctx.arc(maskX, maskY, radius, 0, Math.PI * 2);
+            } else if (layer.mask.type === "rect") {
+              const maskW = maskProps.width ?? 0;
+              const maskH = maskProps.height ?? 0;
+              const maskX = maskProps.x ?? -maskW / 2;
+              const maskY = maskProps.y ?? -maskH / 2;
+              ctx.rect(maskX, maskY, maskW, maskH);
+            } else if (layer.mask.type === "ellipse") {
+              const radiusX = maskProps.radiusX ?? 0;
+              const radiusY = maskProps.radiusY ?? 0;
+              const maskX = maskProps.x ?? 0;
+              const maskY = maskProps.y ?? 0;
+              ctx.ellipse(maskX, maskY, radiusX, radiusY, 0, 0, Math.PI * 2);
+            } else if (layer.mask.type === "horizontal") {
+              // 좌우에서 중앙으로 열림
+              const progress = maskProps.progress ?? 0; // 0~1
+              const maskW = imgW * progress;
+              ctx.rect(-maskW / 2, -imgH / 2, maskW, imgH);
+            } else if (layer.mask.type === "vertical") {
+              // 상하에서 중앙으로 열림
+              const progress = maskProps.progress ?? 0; // 0~1
+              const maskH = imgH * progress;
+              ctx.rect(-imgW / 2, -maskH / 2, imgW, maskH);
+            }
+            
+            ctx.clip();
+          }
 
           // Crop 기능 적용
           if (layer.crop) {
@@ -330,6 +412,11 @@ function CanvasPreview({
             ctx.drawImage(img, drawX, drawY, imgW, imgH);
           }
 
+          // 마스크가 적용된 경우 복원
+          if (layer.mask) {
+            ctx.restore();
+          }
+
           ctx.restore();
         }
       } else if (layer.type === "video") {
@@ -409,6 +496,7 @@ function CanvasPreview({
       let y = layer.y ?? 0;
       let scale = layer.scale ?? 1;
       let animOpacity = 1;
+      let animRotation = 0;
 
       // 키프레임 애니메이션 처리 (수정)
       if (Array.isArray(layer.animation) && layer.animation.length > 1) {
@@ -422,11 +510,13 @@ function CanvasPreview({
           y = anim[0].y ?? y;
           scale = anim[0].scale ?? scale;
           animOpacity = anim[0].opacity ?? layer.opacity ?? 1;
+          animRotation = anim[0].rotation ?? 0;
         } else if (relTime >= anim[anim.length - 1].time) {
           x = anim[anim.length - 1].x ?? x;
           y = anim[anim.length - 1].y ?? y;
           scale = anim[anim.length - 1].scale ?? scale;
           animOpacity = anim[anim.length - 1].opacity ?? layer.opacity ?? 1;
+          animRotation = anim[anim.length - 1].rotation ?? 0;
         } else {
           let prev = anim[0];
           let next = anim[anim.length - 1];
@@ -446,6 +536,8 @@ function CanvasPreview({
           const prevOpacity = prev.opacity ?? layer.opacity ?? 1;
           const nextOpacity = next.opacity ?? layer.opacity ?? 1;
           animOpacity = prevOpacity + (nextOpacity - prevOpacity) * t;
+          animRotation =
+            (prev.rotation ?? 0) + ((next.rotation ?? 0) - (prev.rotation ?? 0)) * t;
         }
       } else {
         animOpacity = layer.opacity ?? 1;
@@ -492,7 +584,10 @@ function CanvasPreview({
         drawY = y;
       }
 
-      ctx.fillText(layer.text || "", drawX, drawY);
+      // 회전 적용
+      ctx.translate(drawX, drawY);
+      ctx.rotate(animRotation);
+      ctx.fillText(layer.text || "", 0, 0);
       ctx.restore();
     });
 

@@ -6,12 +6,19 @@ import "../../styles/timeline.css";
 function Timeline({
   mediaFiles,
   clips,
+  audioTracks = [],
   onRemove,
   onClipDoubleClick,
   onClipRemove,
   onClipResize,
   onClipMove,
+  onSelectClip,
   selectedClipId,
+  onAudioTrackRemove,
+  onAudioTrackResize,
+  onAudioTrackMove,
+  onSelectAudioTrack,
+  selectedAudioTrackId,
   selectedLayerIndex,
   onSelectLayer,
   playhead,
@@ -21,14 +28,6 @@ function Timeline({
 }) {
   const LAYER_TIMELINE_DURATION = 180; // 레이어 트랙: 3분(초)
   const CLIP_TIMELINE_DURATION = 600; // 클립 트랙: 10분(초)
-
-  // playhead 값 디버깅
-  console.log("Timeline 컴포넌트 playhead:", {
-    playhead,
-    isClipEditMode,
-    layerDuration: LAYER_TIMELINE_DURATION,
-    clipDuration: CLIP_TIMELINE_DURATION,
-  });
 
   // 레이어 트랙용 시간 눈금 생성 (0, 10, 20, ..., 180)
   const layerTickStep = 10;
@@ -49,6 +48,11 @@ function Timeline({
     : mediaFiles.layers || [];
   const headerRef = useRef(null);
 
+  // 현재 모드에 따른 타임라인 duration 선택
+  const getCurrentDuration = () => {
+    return isClipEditMode ? LAYER_TIMELINE_DURATION : CLIP_TIMELINE_DURATION;
+  };
+
   // playhead 이동 함수
   const movePlayhead = (clientX) => {
     const target = headerRef.current;
@@ -56,7 +60,8 @@ function Timeline({
     const rect = target.getBoundingClientRect();
     const x = clientX - rect.left;
     const percent = Math.max(0, Math.min(1, x / rect.width));
-    const newTime = Math.round(percent * CLIP_TIMELINE_DURATION);
+    const currentDuration = getCurrentDuration();
+    const newTime = Math.round(percent * currentDuration);
     onPlayheadChange && onPlayheadChange(newTime);
   };
 
@@ -82,7 +87,8 @@ function Timeline({
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percent = x / rect.width;
-    const newTime = Math.round(percent * CLIP_TIMELINE_DURATION);
+    const currentDuration = getCurrentDuration();
+    const newTime = Math.round(percent * currentDuration);
     onPlayheadChange && onPlayheadChange(newTime);
   };
 
@@ -90,13 +96,21 @@ function Timeline({
   if (isClipEditMode) {
     return (
       <div className="timeline">
-        <div className="timeline-header">
+        <div
+          className="timeline-header"
+          ref={headerRef}
+          onMouseDown={handleHeaderMouseDown}
+          style={{ cursor: "pointer" }}
+        >
           <div className="timeline-ticks">
             {layerTicks.map((t) => (
               <span key={t} className="timeline-tick">
                 {t}s
               </span>
             ))}
+          </div>
+          <div className="timeline-current-time">
+            {Math.floor(playhead / 60)}:{String(Math.floor(playhead % 60)).padStart(2, '0')}
           </div>
         </div>
 
@@ -154,13 +168,21 @@ function Timeline({
   // 일반 모드일 때는 클립 트랙과 레이어 트랙 모두 표시
   return (
     <div className="timeline">
-      <div className="timeline-header">
+      <div
+        className="timeline-header"
+        ref={headerRef}
+        onMouseDown={handleHeaderMouseDown}
+        style={{ cursor: "pointer" }}
+      >
         <div className="timeline-ticks">
           {clipTicks.map((t) => (
             <span key={t} className="timeline-tick">
               {t}s
             </span>
           ))}
+        </div>
+        <div className="timeline-current-time">
+          {Math.floor(playhead / 60)}:{String(Math.floor(playhead % 60)).padStart(2, '0')}
         </div>
       </div>
 
@@ -183,8 +205,71 @@ function Timeline({
               onRemove={onClipRemove}
               onResize={onClipResize}
               onMove={onClipMove}
+              onSelect={onSelectClip}
               isSelected={selectedClipId === clip.id}
             />
+          ))}
+        </div>
+      </div>
+
+      {/* Audio Tracks */}
+      <div className="timeline-track audio-track" style={{height: "80px"}}>
+        <span className="track-label">음악 트랙</span>
+        <div className="" onClick={handleTimelineClick}>
+          {audioTracks.length === 0 && (
+            <div
+              style={{ color: "#999", padding: "10px", textAlign: "center" }}
+            >
+              음악 트랙이 없습니다
+            </div>
+          )}
+          {audioTracks.map((track) => (
+            <div
+              key={track.id}
+              className={`timeline-clip clip-audio ${selectedAudioTrackId === track.id ? "selected" : ""}`}
+              style={{
+                left: `${(track.start / CLIP_TIMELINE_DURATION) * 100}%`,
+                width: `${(track.duration / CLIP_TIMELINE_DURATION) * 100}%`,
+                background: "#9b59b6",
+                color: "#fff",
+                border: "solid 2px #8e44ad",
+                height: "60px",
+                position: "absolute",
+                top: "10px",
+                display: "flex",
+                alignItems: "center",
+                padding: "0 10px",
+                cursor: "pointer",
+                borderRadius: "4px",
+                overflow: "hidden",
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectAudioTrack && onSelectAudioTrack(track.id);
+              }}
+            >
+              <i className="fa fa-music" style={{ marginRight: 8 }}></i>
+              <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {track.name}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAudioTrackRemove && onAudioTrackRemove(track.id);
+                }}
+                style={{
+                  background: "#e74c3c",
+                  border: "none",
+                  color: "#fff",
+                  padding: "4px 8px",
+                  borderRadius: "3px",
+                  cursor: "pointer",
+                  marginLeft: 5,
+                }}
+              >
+                ×
+              </button>
+            </div>
           ))}
         </div>
       </div>
