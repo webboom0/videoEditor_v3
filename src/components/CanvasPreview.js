@@ -525,40 +525,44 @@ export default function CanvasPreview({
       if (Array.isArray(layer.animation) && layer.animation.length > 1) {
         const relTime = layer._clipTime !== undefined ? layer._clipTime : currentTime - layer.start;
         
-        if (relTime >= 0) {
-          let prev = layer.animation[0];
-          let next = layer.animation[layer.animation.length - 1];
-          
-          // 애니메이션 시간이 마지막 키프레임을 넘으면 마지막 위치 고정
-          if (relTime >= layer.animation[layer.animation.length - 1].time) {
-            prev = layer.animation[layer.animation.length - 1];
-            next = layer.animation[layer.animation.length - 1];
-            // 마지막 위치 고정
-            animOffsetX = prev.x ?? 0;
-            animOffsetY = prev.y ?? 0;
-            animScale = prev.scale ?? 1;
-            animOpacity = prev.opacity ?? 1;
-            animRotation = prev.rotation ?? 0;
-          } else {
-            for (let i = 1; i < layer.animation.length; i++) {
-              if (layer.animation[i].time > relTime) {
-                next = layer.animation[i];
-                prev = layer.animation[i - 1];
-                break;
-              }
+        
+        let prev = layer.animation[0];
+        let next = layer.animation[layer.animation.length - 1];
+        
+        if (relTime <= prev.time) {
+          // 첫 번째 키프레임 이전
+          animOffsetX = prev.x ?? 0;
+          animOffsetY = prev.y ?? 0;
+          animScale = prev.scale ?? 1;
+          animOpacity = prev.opacity ?? 1;
+          animRotation = prev.rotation ?? 0;
+        } else if (relTime >= next.time) {
+          // 마지막 키프레임 이후
+          animOffsetX = next.x ?? 0;
+          animOffsetY = next.y ?? 0;
+          animScale = next.scale ?? 1;
+          animOpacity = next.opacity ?? 1;
+          animRotation = next.rotation ?? 0;
+        } else {
+          // 키프레임 사이 보간
+          for (let i = 1; i < layer.animation.length; i++) {
+            if (layer.animation[i].time > relTime) {
+              next = layer.animation[i];
+              prev = layer.animation[i - 1];
+              break;
             }
-            
-            let t = (relTime - prev.time) / (next.time - prev.time);
-            if (next.easing) {
-              t = applyEasing(t, next.easing);
-            }
-            
-            animOffsetX = (prev.x ?? 0) + ((next.x ?? 0) - (prev.x ?? 0)) * t;
-            animOffsetY = (prev.y ?? 0) + ((next.y ?? 0) - (prev.y ?? 0)) * t;
-            animScale = (prev.scale ?? 1) + ((next.scale ?? 1) - (prev.scale ?? 1)) * t;
-            animOpacity = (prev.opacity ?? 1) + ((next.opacity ?? 1) - (prev.opacity ?? 1)) * t;
-            animRotation = (prev.rotation ?? 0) + ((next.rotation ?? 0) - (prev.rotation ?? 0)) * t;
           }
+          
+          let t = (relTime - prev.time) / (next.time - prev.time);
+          if (next.easing) {
+            t = applyEasing(t, next.easing);
+          }
+          
+          animOffsetX = (prev.x ?? 0) + ((next.x ?? 0) - (prev.x ?? 0)) * t;
+          animOffsetY = (prev.y ?? 0) + ((next.y ?? 0) - (prev.y ?? 0)) * t;
+          animScale = (prev.scale ?? 1) + ((next.scale ?? 1) - (prev.scale ?? 1)) * t;
+          animOpacity = (prev.opacity ?? 1) + ((next.opacity ?? 1) - (prev.opacity ?? 1)) * t;
+          animRotation = (prev.rotation ?? 0) + ((next.rotation ?? 0) - (prev.rotation ?? 0)) * t;
         }
       }
       
@@ -580,6 +584,7 @@ export default function CanvasPreview({
       ctx.rotate(animRotation);
       ctx.scale(renderScale, renderScale);
       ctx.globalAlpha = animOpacity;
+      
 
       // 그룹 내 자식 레이어들 렌더링
       if (Array.isArray(layer.children)) {
@@ -587,8 +592,16 @@ export default function CanvasPreview({
           // 자식 레이어의 시간 설정 (그룹의 시작 시간 기준)
           childLayer._clipTime = currentTime - layer.start;
           
+          // 그룹의 opacity를 자식 레이어에 적용
+          const originalOpacity = childLayer.opacity;
+          childLayer.opacity = (childLayer.opacity ?? 1) * animOpacity;
+          
+          
           // 자식 레이어 렌더링 (재귀 호출)
           renderLayer(childLayer, ctx, width, height, currentTime, setZoom);
+          
+          // 원래 opacity 복원
+          childLayer.opacity = originalOpacity;
         });
       }
 
