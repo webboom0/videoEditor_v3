@@ -1,0 +1,76 @@
+[
+  {
+    "type": "group",
+    "x": 960,
+    "y": 540,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 5,
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 0.5, "rotation": 0, "opacity": 0 },
+      { "time": 1, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" },
+      { "time": 3, "x": 200, "y": -100, "scale": 1.2, "rotation": 0.3, "opacity": 1, "easing": "easeInOutSine" },
+      { "time": 5, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeInOutSine" }
+    ],
+    "children": [
+      {
+        "type": "shape",
+        "shapeType": "rect",
+        "width": 200,
+        "height": 150,
+        "fillColor": "#3498db",
+        "strokeColor": "#2980b9",
+        "strokeWidth": 3,
+        "x": -100,
+        "y": -75,
+        "align": "center",
+        "verticalAlign": "middle",
+        "start": 0,
+        "duration": 5
+      },
+      {
+        "type": "shape",
+        "shapeType": "circle",
+        "radius": 60,
+        "fillColor": "#e74c3c",
+        "strokeColor": "#c0392b",
+        "strokeWidth": 3,
+        "x": 100,
+        "y": -75,
+        "align": "center",
+        "verticalAlign": "middle",
+        "start": 0,
+        "duration": 5
+      },
+      {
+        "type": "shape",
+        "shapeType": "triangle",
+        "size": 120,
+        "fillColor": "#2ecc71",
+        "strokeColor": "#27ae60",
+        "strokeWidth": 3,
+        "x": 0,
+        "y": 75,
+        "align": "center",
+        "verticalAlign": "middle",
+        "start": 0,
+        "duration": 5
+      },
+      {
+        "type": "text",
+        "text": "GROUP",
+        "x": 0,
+        "y": -150,
+        "align": "center",
+        "verticalAlign": "middle",
+        "color": "#2c3e50",
+        "fontSize": 24,
+        "fontFamily": "Arial",
+        "fontWeight": "bold",
+        "start": 0,
+        "duration": 5
+      }
+    ]
+  }
+]

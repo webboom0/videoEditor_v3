@@ -125,6 +125,7 @@ function Timeline({
                 {layer.type === "text" && "텍스트"}
                 {layer.type === "effect" && "이펙트"}
                 {layer.type === "shape" && "도형"}
+          {layer.type === "group" && "그룹"}
               </span>
               <div
                 className={`timeline-clip clip-${layer.type}${
@@ -286,6 +287,7 @@ function Timeline({
               {layer.type === "text" && "텍스트"}
               {layer.type === "effect" && "이펙트"}
               {layer.type === "shape" && "도형"}
+          {layer.type === "group" && "그룹"}
             </span>
             <div
               className={`timeline-clip clip-${layer.type}${

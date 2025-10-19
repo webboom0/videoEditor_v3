@@ -845,6 +845,83 @@ function CanvasPreview({
         }
 
         ctx.restore();
+      } else if (layer.type === "group") {
+        // 그룹 레이어 렌더링
+        
+        // 그룹 애니메이션 변수 계산
+        let animOffsetX = 0, animOffsetY = 0, animScale = 1, animOpacity = 1, animRotation = 0;
+        
+        if (Array.isArray(layer.animation) && layer.animation.length > 1) {
+          const relTime = layer._clipTime !== undefined ? layer._clipTime : currentTime - layer.start;
+          
+          if (relTime >= 0) {
+            let prev = layer.animation[0];
+            let next = layer.animation[layer.animation.length - 1];
+            
+            // 애니메이션 시간이 마지막 키프레임을 넘으면 마지막 위치 고정
+            if (relTime >= layer.animation[layer.animation.length - 1].time) {
+              prev = layer.animation[layer.animation.length - 1];
+              next = layer.animation[layer.animation.length - 1];
+              // 마지막 위치 고정
+              animOffsetX = prev.x ?? 0;
+              animOffsetY = prev.y ?? 0;
+              animScale = prev.scale ?? 1;
+              animOpacity = prev.opacity ?? 1;
+              animRotation = prev.rotation ?? 0;
+            } else {
+              for (let i = 1; i < layer.animation.length; i++) {
+                if (layer.animation[i].time > relTime) {
+                  next = layer.animation[i];
+                  prev = layer.animation[i - 1];
+                  break;
+                }
+              }
+              
+              let t = (relTime - prev.time) / (next.time - prev.time);
+              if (next.easing) {
+                t = applyEasing(t, next.easing);
+              }
+              
+              animOffsetX = (prev.x ?? 0) + ((next.x ?? 0) - (prev.x ?? 0)) * t;
+              animOffsetY = (prev.y ?? 0) + ((next.y ?? 0) - (prev.y ?? 0)) * t;
+              animScale = (prev.scale ?? 1) + ((next.scale ?? 1) - (prev.scale ?? 1)) * t;
+              animOpacity = (prev.opacity ?? 1) + ((next.opacity ?? 1) - (prev.opacity ?? 1)) * t;
+              animRotation = (prev.rotation ?? 0) + ((next.rotation ?? 0) - (prev.rotation ?? 0)) * t;
+            }
+          }
+        }
+        
+        // 그룹 정렬 기준점 계산
+        let anchorX = layer.x ?? 0;
+        let anchorY = layer.y ?? 0;
+        if (anchorX === 0 && layer.align === "center") anchorX = width / 2;
+        else if (anchorX === 0 && layer.align === "right") anchorX = width;
+        if (anchorY === 0 && layer.verticalAlign === "middle") anchorY = height / 2;
+        else if (anchorY === 0 && layer.verticalAlign === "bottom") anchorY = height;
+
+        const finalX = anchorX + animOffsetX;
+        const finalY = anchorY + animOffsetY;
+        const renderScale = (layer.scale ?? 1) * animScale;
+
+        // 그룹 변환 적용
+        ctx.save();
+        ctx.translate(finalX, finalY);
+        ctx.rotate(animRotation);
+        ctx.scale(renderScale, renderScale);
+        ctx.globalAlpha = animOpacity;
+
+        // 그룹 내 자식 레이어들 렌더링
+        if (Array.isArray(layer.children)) {
+          layer.children.forEach(childLayer => {
+            // 자식 레이어의 시간 설정 (그룹의 시작 시간 기준)
+            childLayer._clipTime = currentTime - layer.start;
+            
+            // 자식 레이어 렌더링 (재귀 호출)
+            renderLayer(childLayer, ctx, width, height, currentTime, setZoom);
+          });
+        }
+
+        ctx.restore();
       }
     });
 
