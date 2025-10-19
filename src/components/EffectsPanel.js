@@ -4,6 +4,7 @@ export default function EffectsPanel({
   effects,
   onSelectEffect,
   onTemplateButtonClick,
+  onMusicButtonClick,
   selectedEffect,
 }) {
   return (
@@ -45,6 +46,19 @@ export default function EffectsPanel({
           <span>{effect.name}</span>
         </button>
       ))}
+
+      {/* 음악 추가 버튼 */}
+      <button
+        className=""
+        onClick={() => {
+          console.log("EffectsPanel에서 Music 버튼 클릭됨");
+          onMusicButtonClick();
+        }}
+        title="음악 추가"
+      >
+        <i className="fa fa-music"></i>
+        <span>Music</span>
+      </button>
     </div>
   );
 }

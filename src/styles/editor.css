@@ -477,3 +477,57 @@ button:hover {
 .template-choice-content .close-btn:hover {
   background: #666;
 }
+
+/* 음악 라이브러리 모달 */
+.music-library-modal h4 {
+  display: block !important;
+  font-size: 18px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #333;
+  font-weight: 600;
+}
+
+.music-library-modal .music-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.music-library-modal .music-file-list li {
+  flex-basis: 100%;
+}
+
+.music-library-modal .music-file-list button {
+  width: 100%;
+  aspect-ratio: auto;
+  min-height: 60px;
+  background-color: #fff;
+  border: solid 1px #dcdcdc;
+  color: #000;
+  padding: 15px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s ease;
+}
+
+.music-library-modal .music-file-list button:hover {
+  background-color: #f0f0f0;
+  border-color: #9b59b6;
+  transform: translateX(5px);
+}
+
+.music-library-modal .music-file-list button i {
+  color: #9b59b6;
+}
+
+.music-library-modal .music-file-list button span {
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+}

@@ -1,0 +1,130 @@
+[
+  {
+    "type": "text",
+    "text": "컬러 마스크 데모",
+    "x": 0,
+    "y": -400,
+    "start": 0,
+    "duration": 20,
+    "align": "center",
+    "verticalAlign": "middle",
+    "color": "#fff",
+    "fontSize": 80,
+    "fontFamily": "Arial"
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_01.jpg",
+    "x": -500,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 10,
+    "scale": 2,
+    "scaleMode": "cover",
+    "mask": {
+      "type": "circle",
+      "fillColor": "#3498db",
+      "strokeColor": "#2980b9",
+      "strokeWidth": 10,
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "radius": 50 },
+        { "time": 2, "x": 0, "y": 0, "radius": 200, "easing": "easeOutCubic" },
+        { "time": 8, "x": 0, "y": 0, "radius": 200 },
+        { "time": 10, "x": 0, "y": 0, "radius": 50, "easing": "easeInCubic" }
+      ]
+    },
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 2, "opacity": 1 },
+      { "time": 10, "x": 0, "y": 0, "scale": 2.5, "opacity": 1 }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_02.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 10,
+    "scale": 2,
+    "scaleMode": "cover",
+    "mask": {
+      "type": "rect",
+      "fillColor": "#e74c3c",
+      "strokeColor": "#c0392b",
+      "strokeWidth": 8,
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "width": 100, "height": 100 },
+        { "time": 2, "x": 0, "y": 0, "width": 400, "height": 300, "easing": "easeOutBack" },
+        { "time": 8, "x": 0, "y": 0, "width": 400, "height": 300 },
+        { "time": 10, "x": 0, "y": 0, "width": 100, "height": 100, "easing": "easeInBack" }
+      ]
+    },
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 2, "opacity": 1, "rotation": 0 },
+      { "time": 10, "x": 0, "y": 0, "scale": 1.5, "opacity": 1, "rotation": 0.785 }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_03.jpg",
+    "x": 500,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 10,
+    "scale": 2,
+    "scaleMode": "cover",
+    "mask": {
+      "type": "ellipse",
+      "fillColor": "#f39c12",
+      "strokeColor": "#d68910",
+      "strokeWidth": 6,
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "radiusX": 50, "radiusY": 100 },
+        { "time": 2, "x": 0, "y": 0, "radiusX": 250, "radiusY": 150, "easing": "easeOutBounce" },
+        { "time": 8, "x": 0, "y": 0, "radiusX": 250, "radiusY": 150 },
+        { "time": 10, "x": 0, "y": 0, "radiusX": 50, "radiusY": 100, "easing": "easeInCubic" }
+      ]
+    },
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 2, "opacity": 1, "rotation": 0 },
+      { "time": 5, "x": 50, "y": -30, "scale": 2.2, "opacity": 1, "rotation": 0.3, "easing": "easeInOutSine" },
+      { "time": 10, "x": 0, "y": 0, "scale": 2, "opacity": 1, "rotation": 0, "easing": "easeInOutSine" }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_04.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 10,
+    "duration": 10,
+    "scale": 2.5,
+    "scaleMode": "cover",
+    "mask": {
+      "type": "circle",
+      "fillColor": "rgba(155, 89, 182, 0.3)",
+      "strokeColor": "#8e44ad",
+      "strokeWidth": 15,
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "radius": 0 },
+        { "time": 3, "x": 0, "y": 0, "radius": 300, "easing": "easeOutElastic" },
+        { "time": 7, "x": 0, "y": 0, "radius": 300 },
+        { "time": 10, "x": 0, "y": 0, "radius": 0, "easing": "easeInCubic" }
+      ]
+    },
+    "animation": [
+      { "time": 0, "x": -100, "y": 50, "scale": 2.5, "opacity": 1, "rotation": -0.2 },
+      { "time": 5, "x": 0, "y": 0, "scale": 2.8, "opacity": 1, "rotation": 0, "easing": "easeInOutSine" },
+      { "time": 10, "x": 100, "y": -50, "scale": 2.5, "opacity": 1, "rotation": 0.2, "easing": "easeInOutSine" }
+    ]
+  }
+]
+

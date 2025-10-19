@@ -1,0 +1,61 @@
+[
+  {
+    "type": "text",
+    "text": "A Lover's Concerto",
+    "x": 200,
+    "y": 100,
+    "start": 0,
+    "duration": 70,
+    "align": "center",
+    "verticalAlign": "middle",
+    "color": "#fff",
+    "fontSize": 100,
+    "fontFamily": "Arial",
+    "animation": [
+      { "time": 0, "x": 400, "y": 500, "scale": 0.3, "opacity": 0, "rotation": 0.5 },
+      { "time": 2, "x": 400, "y": 450, "scale": 0.6, "opacity": 0.5, "rotation": 0.2, "easing": "easeOutCubic" },
+      { "time": 4, "x": 400, "y": 400, "scale": 0.9, "opacity": 1, "rotation": 0, "easing": "easeOutQuad" },
+      { "time": 6, "x": 400, "y": 400, "scale": 1, "opacity": 1, "rotation": 0, "easing": "easeInOutSine" },
+      { "time": 65, "x": 400, "y": 400, "scale": 1, "opacity": 1, "rotation": 0, "easing": "linear" },
+      { "time": 68, "x": 400, "y": 350, "scale": 0.7, "opacity": 0.3, "rotation": -0.3, "easing": "easeInQuad" },
+      { "time": 70, "x": 400, "y": 300, "scale": 0.3, "opacity": 0, "rotation": -0.5, "easing": "easeInCubic" }
+    ]
+  },
+  {
+    "type": "image",
+    "src": "/files/images/clip_01/img_01.png",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 30,
+    "scale": 1,
+    "scaleMode": "cover",
+    "animation": [{} ]
+  },
+  {
+    "type": "shape",
+    "shapeType": "rect",
+    "width": 1280,
+    "height": 756,
+    "fillColor": "#f39c12",
+    "strokeColor": "#e67e22",
+    "strokeWidth": 0,
+    "imageSrc": "/files/images/clip_01/photo_03.jpg",
+    "imageScaleMode": "cover",
+    "imageAlign": "center",
+    "imageVerticalAlign": "middle",
+    "x": 0,
+    "y": 100,
+    "align": "left",
+    "verticalAlign": "top",
+    "start": 0.5,
+    "duration": 10,
+    "animation": [
+      { "time": 0, "x": 0, "y": 100, "scale": 1, "opacity": 1 },
+      { "time": 1, "x": 300, "y": 100, "scale": 1, "opacity": 1, "easing": "easeOutQuad" }
+    ]
+  }
+
+]

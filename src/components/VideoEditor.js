@@ -50,6 +50,10 @@ function VideoEditor() {
 
   const [selectedEffect, setSelectedEffect] = useState(null);
 
+  // 음악 라이브러리 관련 상태
+  const [showMusicLibrary, setShowMusicLibrary] = useState(false);
+  const [musicFiles, setMusicFiles] = useState([]);
+
   const mediaLibraryRef = useRef(null);
 
   // 클립 관련 상태 추가
@@ -518,7 +522,7 @@ function VideoEditor() {
   };
 
   useEffect(() => {
-    if (!showTemplates) return;
+    if (!showTemplates && !showMusicLibrary) return;
 
     function handleClickOutside(e) {
       if (
@@ -526,13 +530,14 @@ function VideoEditor() {
         !mediaLibraryRef.current.contains(e.target)
       ) {
         setShowTemplates(false);
+        setShowMusicLibrary(false);
         setSelectedEffect(null);
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showTemplates]);
+  }, [showTemplates, showMusicLibrary]);
 
   // 최초 마운트 시 localStorage에서 불러오거나, 없으면 json에서 불러오기
 
@@ -855,12 +860,73 @@ function VideoEditor() {
     }
   };
 
-  // 템플릿 버튼 클릭 시
-  const handleTemplateButtonClick = () => {
+  // 템플릿 버튼 클릭 시 - public/template 폴더에서 자동으로 불러오기
+  const handleTemplateButtonClick = async () => {
     console.log("템플릿 버튼 클릭됨!");
     setShowTemplates(true);
-    setTemplateFiles(["EASING_DEMO", "LOVE", "WEDDING_01","SMOOTH_ANIMATION_EXAMPLE","MASK_ANIMATION_EXAMPLE"]);
+    
+    try {
+      const response = await fetch('/template/index.json');
+      if (response.ok) {
+        const data = await response.json();
+        setTemplateFiles(data.templates || []);
+        console.log("템플릿 파일 목록 불러오기 성공:", data.templates);
+      } else {
+        // index.json이 없으면 기본 목록 사용
+        console.warn("템플릿 index.json을 찾을 수 없습니다. 기본 목록을 사용합니다.");
+        setTemplateFiles(["EASING_DEMO", "LOVE", "WEDDING_01","SMOOTH_ANIMATION_EXAMPLE","MASK_ANIMATION_EXAMPLE"]);
+      }
+    } catch (error) {
+      console.error("템플릿 목록 불러오기 실패:", error);
+      // 에러 발생 시 기본 목록 사용
+      setTemplateFiles(["EASING_DEMO", "LOVE", "WEDDING_01","SMOOTH_ANIMATION_EXAMPLE","MASK_ANIMATION_EXAMPLE"]);
+    }
+    
     console.log("showTemplates 상태 설정됨:", true);
+  };
+
+  // 음악 버튼 클릭 시 - public/files/music 폴더에서 자동으로 불러오기
+  const handleMusicButtonClick = async () => {
+    console.log("음악 버튼 클릭됨!");
+    setShowMusicLibrary(true);
+    
+    try {
+      const response = await fetch('/files/music/index.json');
+      if (response.ok) {
+        const data = await response.json();
+        setMusicFiles(data.music || []);
+        console.log("음악 파일 목록 불러오기 성공:", data.music);
+      } else {
+        // index.json이 없으면 기본 목록 사용
+        console.warn("음악 index.json을 찾을 수 없습니다. 기본 목록을 사용합니다.");
+        setMusicFiles(["DRAMA.mp3", "LOVE.mp3"]);
+      }
+    } catch (error) {
+      console.error("음악 목록 불러오기 실패:", error);
+      // 에러 발생 시 기본 목록 사용
+      setMusicFiles(["DRAMA.mp3", "LOVE.mp3"]);
+    }
+    
+    console.log("showMusicLibrary 상태 설정됨:", true);
+  };
+
+  // 음악 파일 선택 시
+  const handleMusicFileSelect = (fileName) => {
+    const audioUrl = `/files/music/${fileName}`;
+    
+    const audioTrack = {
+      id: `audio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: fileName,
+      src: audioUrl,
+      start: 0,
+      duration: 600, // 기본 10분
+      volume: 1,
+    };
+    setAudioTracks((prev) => [...prev, audioTrack]);
+    alert(`오디오 트랙이 추가되었습니다: ${fileName}`);
+    
+    setShowMusicLibrary(false);
+    setSelectedEffect(null);
   };
 
   // 템플릿 선택 시
@@ -1055,13 +1121,14 @@ function VideoEditor() {
         effects={effects}
         onSelectEffect={handleSelectEffect}
         onTemplateButtonClick={handleTemplateButtonClick}
+        onMusicButtonClick={handleMusicButtonClick}
         selectedEffect={selectedEffect}
       />
 
       <div className="editor-container">
         <div className="editor-media-container">
           <div
-            className={`media-library${showTemplates ? " active" : ""}`}
+            className={`media-library${showTemplates || showMusicLibrary ? " active" : ""}`}
             ref={mediaLibraryRef}
           >
             <MediaLibrary onUpload={setMediaFiles} />
@@ -1088,6 +1155,34 @@ function VideoEditor() {
                 <button
                   className="close-btn"
                   onClick={handleTemplateModalClose}
+                >
+                  <span className="blind">닫기</span>
+                </button>
+              </div>
+            )}
+
+            {/* 음악 라이브러리 모달 */}
+            {showMusicLibrary && (
+              <div className="template-list-modal music-library-modal">
+                <h4>음악 파일 선택</h4>
+
+                <ul className="music-file-list">
+                  {musicFiles.map((file) => (
+                    <li key={file}>
+                      <button onClick={() => handleMusicFileSelect(file)}>
+                        <i className="fa fa-music" style={{ marginRight: 10, fontSize: 24 }}></i>
+                        <span>{file}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  className="close-btn"
+                  onClick={() => {
+                    setShowMusicLibrary(false);
+                    setSelectedEffect(null);
+                  }}
                 >
                   <span className="blind">닫기</span>
                 </button>
@@ -1259,22 +1354,6 @@ function VideoEditor() {
               <i className="fa fa-trash"></i>
             </button>
 
-            <button
-              onClick={() => audioFileInputRef.current?.click()}
-              style={{ marginLeft: 10, background: "#e74c3c", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
-              title="오디오 트랙 추가"
-            >
-              <i className="fa fa-music" style={{ marginRight: 5 }}></i>
-              음악 추가
-            </button>
-
-            <input
-              ref={audioFileInputRef}
-              type="file"
-              accept="audio/*"
-              onChange={handleAddAudioTrack}
-              style={{ display: "none" }}
-            />
 
             <button
               onClick={() => setShowVideoAnalyzer(true)}

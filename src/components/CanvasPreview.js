@@ -4,12 +4,56 @@ import { applyEasing } from "../utils/easingFunctions";
 
 // 이미지 캐싱 및 로딩 함수
 const imageCache = {};
-function getImage(src) {
+const imageLoadListeners = {};
+
+function getImage(src, onLoad) {
   if (!src) return null;
-  if (imageCache[src]) return imageCache[src];
+  
+  // 이미 캐시에 있고 로드가 완료된 경우
+  if (imageCache[src]) {
+    const img = imageCache[src];
+    // 로드가 완료되었으면 바로 반환
+    if (img.complete && img.naturalHeight !== 0) {
+      return img;
+    }
+    // 로드 중이면 리스너만 추가하고 반환
+    if (onLoad && !imageLoadListeners[src]?.includes(onLoad)) {
+      if (!imageLoadListeners[src]) imageLoadListeners[src] = [];
+      imageLoadListeners[src].push(onLoad);
+    }
+    return img;
+  }
+  
+  // 새로운 이미지 생성
   const img = new window.Image();
+  img.crossOrigin = "anonymous";
+  
+  // 로드 성공 핸들러
+  img.onload = () => {
+    console.log('이미지 로드 성공:', src);
+    // 모든 리스너 호출
+    if (imageLoadListeners[src]) {
+      imageLoadListeners[src].forEach(listener => listener());
+      delete imageLoadListeners[src];
+    }
+  };
+  
+  // 로드 실패 핸들러
+  img.onerror = () => {
+    console.error('이미지 로드 실패:', src);
+    console.error('이미지 경로를 확인하세요. 현재 경로:', img.src);
+    delete imageCache[src]; // 캐시에서 제거하여 재시도 가능하도록
+  };
+  
   img.src = src;
   imageCache[src] = img;
+  
+  // 로드 리스너 추가
+  if (onLoad) {
+    if (!imageLoadListeners[src]) imageLoadListeners[src] = [];
+    imageLoadListeners[src].push(onLoad);
+  }
+  
   return img;
 }
 
@@ -105,6 +149,8 @@ function CanvasPreview({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
+    
     const dpr = window.devicePixelRatio || 1;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
@@ -127,14 +173,8 @@ function CanvasPreview({
     ctx.translate(panX, panY);
     ctx.scale(zoom, zoom);
 
-    // 1. 이미지 캐싱 및 미리 로드
-    layers.forEach((layer) => {
-      if (layer.type === "image" && !imageCache[layer.src]) {
-        const img = new window.Image();
-        img.src = layer.src;
-        imageCache[layer.src] = img;
-      }
-    });
+    // 렌더링 함수 (이미지 로드 시 다시 호출될 수 있도록)
+    let needsRedraw = false;
 
     // 2. 레이어 그리기
     layers.forEach((layer, idx) => {
@@ -217,8 +257,21 @@ function CanvasPreview({
 
       // === 타입별 렌더링 ===
       if (layer.type === "image") {
-        const img = getImage(layer.src);
-        if (img && img.complete) {
+        // 이미지 로드 시 다시 그리도록 콜백 전달
+        const img = getImage(layer.src, () => {
+          // 이미지가 로드되면 강제로 리렌더링
+          if (!needsRedraw) {
+            needsRedraw = true;
+            // 다음 프레임에 다시 그리기
+            requestAnimationFrame(() => {
+              // 작은 상태 변경으로 리렌더링 트리거
+              setZoom(z => z);
+            });
+          }
+        });
+        
+        // 이미지가 완전히 로드되고 유효한지 확인
+        if (img && img.complete && img.naturalHeight !== 0) {
           const canvasElem = canvasRef?.current;
           if (!canvasElem) return;
           const scaleToFit = Math.min(
@@ -308,37 +361,58 @@ function CanvasPreview({
             
             // 마스크 타입별 클리핑 처리
             ctx.save();
-            ctx.beginPath();
             
-            if (layer.mask.type === "circle") {
-              const radius = maskProps.radius ?? 0;
-              const maskX = maskProps.x ?? 0;
-              const maskY = maskProps.y ?? 0;
-              ctx.arc(maskX, maskY, radius, 0, Math.PI * 2);
-            } else if (layer.mask.type === "rect") {
-              const maskW = maskProps.width ?? 0;
-              const maskH = maskProps.height ?? 0;
-              const maskX = maskProps.x ?? -maskW / 2;
-              const maskY = maskProps.y ?? -maskH / 2;
-              ctx.rect(maskX, maskY, maskW, maskH);
-            } else if (layer.mask.type === "ellipse") {
-              const radiusX = maskProps.radiusX ?? 0;
-              const radiusY = maskProps.radiusY ?? 0;
-              const maskX = maskProps.x ?? 0;
-              const maskY = maskProps.y ?? 0;
-              ctx.ellipse(maskX, maskY, radiusX, radiusY, 0, 0, Math.PI * 2);
-            } else if (layer.mask.type === "horizontal") {
-              // 좌우에서 중앙으로 열림
-              const progress = maskProps.progress ?? 0; // 0~1
-              const maskW = imgW * progress;
-              ctx.rect(-maskW / 2, -imgH / 2, maskW, imgH);
-            } else if (layer.mask.type === "vertical") {
-              // 상하에서 중앙으로 열림
-              const progress = maskProps.progress ?? 0; // 0~1
-              const maskH = imgH * progress;
-              ctx.rect(-imgW / 2, -maskH / 2, imgW, maskH);
+            // 마스크 도형 경로를 그리는 함수
+            const drawMaskPath = () => {
+              ctx.beginPath();
+              if (layer.mask.type === "circle") {
+                const radius = maskProps.radius ?? 0;
+                const maskX = maskProps.x ?? 0;
+                const maskY = maskProps.y ?? 0;
+                ctx.arc(maskX, maskY, radius, 0, Math.PI * 2);
+              } else if (layer.mask.type === "rect") {
+                const maskW = maskProps.width ?? 0;
+                const maskH = maskProps.height ?? 0;
+                const maskX = maskProps.x ?? -maskW / 2;
+                const maskY = maskProps.y ?? -maskH / 2;
+                ctx.rect(maskX, maskY, maskW, maskH);
+              } else if (layer.mask.type === "ellipse") {
+                const radiusX = maskProps.radiusX ?? 0;
+                const radiusY = maskProps.radiusY ?? 0;
+                const maskX = maskProps.x ?? 0;
+                const maskY = maskProps.y ?? 0;
+                ctx.ellipse(maskX, maskY, radiusX, radiusY, 0, 0, Math.PI * 2);
+              } else if (layer.mask.type === "horizontal") {
+                // 좌우에서 중앙으로 열림
+                const progress = maskProps.progress ?? 0; // 0~1
+                const maskW = imgW * progress;
+                ctx.rect(-maskW / 2, -imgH / 2, maskW, imgH);
+              } else if (layer.mask.type === "vertical") {
+                // 상하에서 중앙으로 열림
+                const progress = maskProps.progress ?? 0; // 0~1
+                const maskH = imgH * progress;
+                ctx.rect(-imgW / 2, -maskH / 2, imgW, maskH);
+              }
+            };
+            
+            // 마스크에 색상이 있으면 먼저 그리기
+            if (layer.mask.fillColor || layer.mask.strokeColor) {
+              drawMaskPath();
+              
+              if (layer.mask.fillColor) {
+                ctx.fillStyle = layer.mask.fillColor;
+                ctx.fill();
+              }
+              
+              if (layer.mask.strokeColor) {
+                ctx.strokeStyle = layer.mask.strokeColor;
+                ctx.lineWidth = layer.mask.strokeWidth ?? 2;
+                ctx.stroke();
+              }
             }
             
+            // 클리핑을 위해 같은 경로 다시 그리기
+            drawMaskPath();
             ctx.clip();
           }
 
@@ -500,6 +574,277 @@ function CanvasPreview({
         if (effectFunc) {
           effectFunc(ctx, layer, currentTime, canvas);
         }
+      } else if (layer.type === "shape") {
+        // 도형 레이어 렌더링
+        
+        // 애니메이션 변수 계산
+        let animOffsetX = 0, animOffsetY = 0, animScale = 1, animOpacity = 1, animRotation = 0;
+        
+        if (Array.isArray(layer.animation) && layer.animation.length > 1) {
+          const relTime = layer._clipTime !== undefined ? layer._clipTime : currentTime - layer.start;
+          
+          if (relTime >= 0) {
+            let prev = layer.animation[0];
+            let next = layer.animation[layer.animation.length - 1];
+            
+            // 애니메이션 시간이 마지막 키프레임을 넘으면 마지막 위치 고정
+            if (relTime >= layer.animation[layer.animation.length - 1].time) {
+              prev = layer.animation[layer.animation.length - 1];
+              next = layer.animation[layer.animation.length - 1];
+              // 마지막 위치 고정
+              animOffsetX = prev.x ?? 0;
+              animOffsetY = prev.y ?? 0;
+              animScale = prev.scale ?? 1;
+              animOpacity = prev.opacity ?? 1;
+              animRotation = prev.rotation ?? 0;
+            } else {
+              for (let i = 1; i < layer.animation.length; i++) {
+                if (layer.animation[i].time > relTime) {
+                  next = layer.animation[i];
+                  prev = layer.animation[i - 1];
+                  break;
+                }
+              }
+              
+              let t = (relTime - prev.time) / (next.time - prev.time);
+              if (next.easing) {
+                t = applyEasing(t, next.easing);
+              }
+              
+              animOffsetX = (prev.x ?? 0) + ((next.x ?? 0) - (prev.x ?? 0)) * t;
+              animOffsetY = (prev.y ?? 0) + ((next.y ?? 0) - (prev.y ?? 0)) * t;
+              animScale = (prev.scale ?? 1) + ((next.scale ?? 1) - (prev.scale ?? 1)) * t;
+              animOpacity = (prev.opacity ?? 1) + ((next.opacity ?? 1) - (prev.opacity ?? 1)) * t;
+              animRotation = (prev.rotation ?? 0) + ((next.rotation ?? 0) - (prev.rotation ?? 0)) * t;
+            }
+          }
+        }
+        
+        // 정렬 기준점 계산
+        let anchorX = layer.x ?? 0;
+        let anchorY = layer.y ?? 0;
+        if (anchorX === 0 && layer.align === "center") anchorX = width / 2;
+        else if (anchorX === 0 && layer.align === "right") anchorX = width;
+        if (anchorY === 0 && layer.verticalAlign === "middle") anchorY = height / 2;
+        else if (anchorY === 0 && layer.verticalAlign === "bottom") anchorY = height;
+
+        const finalX = anchorX + animOffsetX;
+        const finalY = anchorY + animOffsetY;
+        const renderScale = (layer.scale ?? 1) * animScale;
+
+        ctx.save();
+        ctx.translate(finalX, finalY);
+        ctx.rotate(animRotation);
+        ctx.scale(renderScale, renderScale);
+        ctx.globalAlpha = animOpacity;
+
+        // 도형 그리기
+        ctx.beginPath();
+
+        if (layer.shapeType === "rect") {
+          const w = layer.width ?? 100;
+          const h = layer.height ?? 100;
+          
+          // 정렬에 따른 위치 계산
+          let rectX = -w / 2, rectY = -h / 2;
+          
+          if (layer.align === "left") {
+            rectX = 0;
+          } else if (layer.align === "right") {
+            rectX = -w;
+          }
+          
+          if (layer.verticalAlign === "top") {
+            rectY = 0;
+          } else if (layer.verticalAlign === "bottom") {
+            rectY = -h;
+          }
+          
+          ctx.rect(rectX, rectY, w, h);
+        } else if (layer.shapeType === "circle") {
+          const radius = layer.radius ?? 50;
+          ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        } else if (layer.shapeType === "ellipse") {
+          const radiusX = layer.radiusX ?? 100;
+          const radiusY = layer.radiusY ?? 50;
+          ctx.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+        } else if (layer.shapeType === "triangle") {
+          const size = layer.size ?? 100;
+          ctx.moveTo(0, -size / 2);
+          ctx.lineTo(size / 2, size / 2);
+          ctx.lineTo(-size / 2, size / 2);
+          ctx.closePath();
+        } else if (layer.shapeType === "star") {
+          const outerRadius = layer.outerRadius ?? 50;
+          const innerRadius = layer.innerRadius ?? 25;
+          const points = layer.points ?? 5;
+          
+          for (let i = 0; i < points * 2; i++) {
+            const angle = (Math.PI / points) * i;
+            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+            const x = Math.cos(angle - Math.PI / 2) * radius;
+            const y = Math.sin(angle - Math.PI / 2) * radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+        } else if (layer.shapeType === "polygon") {
+          const radius = layer.radius ?? 50;
+          const sides = layer.sides ?? 6;
+          
+          for (let i = 0; i < sides; i++) {
+            const angle = (Math.PI * 2 / sides) * i;
+            const x = Math.cos(angle - Math.PI / 2) * radius;
+            const y = Math.sin(angle - Math.PI / 2) * radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+        }
+
+        // 채우기
+        if (layer.fillColor) {
+          ctx.fillStyle = layer.fillColor;
+          ctx.fill();
+        }
+
+        // 외곽선
+        if (layer.strokeColor) {
+          ctx.strokeStyle = layer.strokeColor;
+          ctx.lineWidth = layer.strokeWidth ?? 2;
+          ctx.stroke();
+        }
+
+        // Shape 안에 이미지가 있으면 이미지 렌더링
+        if (layer.imageSrc) {
+          const img = getImage(layer.imageSrc, () => {
+            if (!needsRedraw) {
+              needsRedraw = true;
+              requestAnimationFrame(() => {
+                setZoom(z => z);
+              });
+            }
+          });
+          
+          if (img && img.complete && img.naturalHeight !== 0) {
+            // 도형 경로를 클리핑 마스크로 사용
+            ctx.clip();
+            
+            // 이미지 크기 계산
+            const imgW = img.naturalWidth;
+            const imgH = img.naturalHeight;
+            
+            // 이미지가 도형 안에 맞도록 스케일링
+            let imageScale = 1;
+            let drawX = 0, drawY = 0, drawW = imgW, drawH = imgH;
+            
+            if (layer.shapeType === "rect") {
+              const w = layer.width ?? 100;
+              const h = layer.height ?? 100;
+              
+              // scaleMode에 따른 스케일링
+              if (layer.imageScaleMode === "cover") {
+                imageScale = Math.max(w / imgW, h / imgH);
+                drawW = imgW * imageScale;
+                drawH = imgH * imageScale;
+                
+                // cover 모드에서는 도형의 정렬에 따라 위치 조정
+                if (layer.align === "left") {
+                  drawX = 0;  // 도형 왼쪽 상단부터
+                } else if (layer.align === "center") {
+                  drawX = -drawW / 2;  // 도형 중앙
+                } else if (layer.align === "right") {
+                  drawX = -drawW;  // 도형 오른쪽 상단부터
+                }
+                
+                if (layer.verticalAlign === "top") {
+                  drawY = 0;  // 도형 상단부터
+                } else if (layer.verticalAlign === "middle") {
+                  drawY = -drawH / 2;  // 도형 중앙
+                } else if (layer.verticalAlign === "bottom") {
+                  drawY = -drawH;  // 도형 하단부터
+                }
+                
+              } else if (layer.imageScaleMode === "contain") {
+                imageScale = Math.min(w / imgW, h / imgH);
+                drawW = imgW * imageScale;
+                drawH = imgH * imageScale;
+                
+                // contain 모드에서는 정렬 설정에 따라 위치 조정
+                if (layer.imageAlign === "left") {
+                  drawX = 0;
+                } else if (layer.imageAlign === "center") {
+                  drawX = -drawW / 2;
+                } else if (layer.imageAlign === "right") {
+                  drawX = -drawW;
+                }
+                
+                if (layer.imageVerticalAlign === "top") {
+                  drawY = 0;
+                } else if (layer.imageVerticalAlign === "middle") {
+                  drawY = -drawH / 2;
+                } else if (layer.imageVerticalAlign === "bottom") {
+                  drawY = -drawH;
+                }
+                
+              } else if (layer.imageScaleMode === "fill") {
+                // 도형을 완전히 채우도록 (비율 무시)
+                drawW = w;
+                drawH = h;
+                imageScale = 1;
+                drawX = 0;
+                drawY = 0;
+                
+              } else {
+                // 기본값: contain
+                imageScale = Math.min(w / imgW, h / imgH);
+                drawW = imgW * imageScale;
+                drawH = imgH * imageScale;
+                drawX = -drawW / 2;
+                drawY = -drawH / 2;
+              }
+              
+            } else if (layer.shapeType === "circle") {
+              const radius = layer.radius ?? 50;
+              const diameter = radius * 2;
+              
+              if (layer.imageScaleMode === "cover") {
+                imageScale = Math.max(diameter / imgW, diameter / imgH);
+              } else if (layer.imageScaleMode === "contain") {
+                imageScale = Math.min(diameter / imgW, diameter / imgH);
+              } else {
+                imageScale = Math.min(diameter / imgW, diameter / imgH);
+              }
+              
+              drawW = imgW * imageScale;
+              drawH = imgH * imageScale;
+              drawX = -drawW / 2;
+              drawY = -drawH / 2;
+              
+            } else if (layer.shapeType === "ellipse") {
+              const radiusX = layer.radiusX ?? 100;
+              const radiusY = layer.radiusY ?? 50;
+              
+              if (layer.imageScaleMode === "cover") {
+                imageScale = Math.max((radiusX * 2) / imgW, (radiusY * 2) / imgH);
+              } else if (layer.imageScaleMode === "contain") {
+                imageScale = Math.min((radiusX * 2) / imgW, (radiusY * 2) / imgH);
+              } else {
+                imageScale = Math.min((radiusX * 2) / imgW, (radiusY * 2) / imgH);
+              }
+              
+              drawW = imgW * imageScale;
+              drawH = imgH * imageScale;
+              drawX = -drawW / 2;
+              drawY = -drawH / 2;
+            }
+            
+            // 이미지 그리기
+            ctx.drawImage(img, drawX, drawY, drawW, drawH);
+          }
+        }
+
+        ctx.restore();
       }
     });
 

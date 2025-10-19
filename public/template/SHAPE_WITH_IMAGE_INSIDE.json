@@ -1,0 +1,22 @@
+[
+  {
+    "type": "shape",
+    "shapeType": "rect",
+    "width": 1536,
+    "height": 756,
+    "fillColor": "#f39c12",
+    "strokeColor": "#e67e22",
+    "strokeWidth": 5,
+    "imageSrc": "/files/images/clip_01/photo_03.jpg",
+    "x": 0,
+    "y": 100,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0.5,
+    "duration": 10,
+    "animation": [
+      { "time": 0, "x": -800, "y": 100, "scale": 1, "opacity": 1 },
+      { "time": 1, "x": 0, "y": 100, "scale": 1, "opacity": 1, "easing": "easeOutQuad" }
+    ]
+  }
+]
