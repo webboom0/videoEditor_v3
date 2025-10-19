@@ -533,3 +533,7 @@ button:hover {
   font-size: 14px;
   font-weight: 500;
 }
+
+.canvas-container{
+  height: 100%;
+}

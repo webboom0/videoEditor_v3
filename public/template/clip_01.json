@@ -1,26 +1,5 @@
 [
-  {
-    "type": "text",
-    "text": "A Lover's Concerto",
-    "x": 200,
-    "y": 100,
-    "start": 0,
-    "duration": 70,
-    "align": "center",
-    "verticalAlign": "middle",
-    "color": "#fff",
-    "fontSize": 100,
-    "fontFamily": "Arial",
-    "animation": [
-      { "time": 0, "x": 400, "y": 500, "scale": 0.3, "opacity": 0, "rotation": 0.5 },
-      { "time": 2, "x": 400, "y": 450, "scale": 0.6, "opacity": 0.5, "rotation": 0.2, "easing": "easeOutCubic" },
-      { "time": 4, "x": 400, "y": 400, "scale": 0.9, "opacity": 1, "rotation": 0, "easing": "easeOutQuad" },
-      { "time": 6, "x": 400, "y": 400, "scale": 1, "opacity": 1, "rotation": 0, "easing": "easeInOutSine" },
-      { "time": 65, "x": 400, "y": 400, "scale": 1, "opacity": 1, "rotation": 0, "easing": "linear" },
-      { "time": 68, "x": 400, "y": 350, "scale": 0.7, "opacity": 0.3, "rotation": -0.3, "easing": "easeInQuad" },
-      { "time": 70, "x": 400, "y": 300, "scale": 0.3, "opacity": 0, "rotation": -0.5, "easing": "easeInCubic" }
-    ]
-  },
+  
   {
     "type": "image",
     "src": "/files/images/clip_01/img_01.png",
