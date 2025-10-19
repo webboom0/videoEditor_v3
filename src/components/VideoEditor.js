@@ -1355,14 +1355,15 @@ function VideoEditor() {
             </button>
 
 
-            <button
+            {/* 비디오 분석 버튼 숨김 */}
+            {/* <button
               onClick={() => setShowVideoAnalyzer(true)}
               style={{ marginLeft: 10, background: "#9b59b6", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
               title="비디오 분석"
             >
               <i className="fa fa-film" style={{ marginRight: 5 }}></i>
               비디오 분석
-            </button>
+            </button> */}
 
             <button 
               onClick={handleSaveProject}

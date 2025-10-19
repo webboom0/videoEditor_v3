@@ -1,19 +1,7 @@
 {
   "templates": [
     "clip_01",
-    "COLORED_MASK_DEMO",
-    "DRAMA2",
     "EASING_DEMO",
-    "GROUP_DEMO",
-    "LOVE",
-    "MASK_ANIMATION_EXAMPLE",
-    "SMOOTH_ANIMATION_EXAMPLE",
-    "SHAPE_MASK_DEMO",
-    "SHAPES_DEMO",
-    "SHAPE_WITH_IMAGE",
-    "SHAPE_WITH_IMAGE_ANIMATION",
-    "SHAPE_WITH_IMAGE_INSIDE",
-    "SHAPE_IMAGE_SCALE_MODES",
-    "WEDDING_01"
+    "LOVE"
   ]
 }

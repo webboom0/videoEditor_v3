@@ -153,6 +153,10 @@ select {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  background-color: #333;
+}
+.editor-timeline-container{
+  background-color: #fff;
 }
 .editor-media-container {
   flex-grow: 1;
@@ -169,6 +173,7 @@ select {
   height: 100% !important;
   object-fit: contain;
   background-color: #999;
+  border: none !important;
 }
 .media-library,
 .effects-panel,
