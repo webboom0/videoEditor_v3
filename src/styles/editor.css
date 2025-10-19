@@ -231,7 +231,6 @@ select {
   transform: all 0.5s ease-in-out 0s;
   transform: translateX(-100%);
   z-index: 1000;
-  overflow: auto;
 }
 .media-library.active {
   transform: translateX(0);
@@ -313,6 +312,8 @@ button:hover {
 }
 .template-list-modal {
   padding: 40px 10px;
+  height: 100%;
+  overflow-y: auto;
 }
 .template-list-modal .close-btn {
   position: absolute;
