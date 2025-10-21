@@ -41,6 +41,19 @@ const defaultValues = {
     },
     group: {
         children: []
+    },
+    effect: {
+        effectType: 'flash',
+        width: 640,
+        height: 360,
+        intensity: 0.5,
+        color: '#ffffff',
+        count: 12,
+        amount: 0.15,
+        loop: 'once',
+        scaleMode: 'fit',
+        maxFrameCount: 0,
+        fps: 30
     }
 };
 
@@ -139,6 +152,7 @@ function renderLayersList() {
             <div class="layer-info">
                 시작: ${layer.start}s | 길이: ${layer.duration}s
                 ${layer.type === 'group' && layer.children ? ` | 자식: ${layer.children.length}개` : ''}
+                ${layer.type === 'effect' ? ` | ${layer.effectType || 'effect'}` : ''}
             </div>
         </div>
     `).join('');
@@ -150,18 +164,19 @@ function getLayerTypeIcon(type) {
         image: '🖼️',
         shape: '⬛',
         group: '📁',
-        text: '📝'
+        text: '📝',
+        effect: '✨'
     };
     return icons[type] || '📄';
 }
 
 // 자식 레이어 추가
 function addChildLayer(parentIndex) {
-    const type = prompt('자식 레이어 타입을 입력하세요 (image, shape, text):', 'shape');
-    if (type && ['image', 'shape', 'text'].includes(type)) {
+    const type = prompt('자식 레이어 타입을 입력하세요 (image, shape, text, effect):', 'shape');
+    if (type && ['image', 'shape', 'text', 'effect'].includes(type)) {
         addLayer(type, parentIndex);
     } else if (type) {
-        alert('올바른 타입을 입력하세요: image, shape, text');
+        alert('올바른 타입을 입력하세요: image, shape, text, effect');
     }
 }
 
@@ -264,6 +279,8 @@ function renderTypeSpecificProperties(layer, index) {
             return renderShapeProperties(layer, index);
         case 'text':
             return renderTextProperties(layer, index);
+        case 'effect':
+            return renderEffectProperties(layer, index);
         case 'group':
             return ''; // 그룹은 특별한 속성 없음
         default:
@@ -410,6 +427,156 @@ function renderTextProperties(layer, index) {
     `;
 }
 
+// 이펙트 속성
+function renderEffectProperties(layer, index) {
+    const effectType = layer.effectType || 'flash';
+    
+    return `
+        <div class="form-section">
+            <h3>이펙트 속성</h3>
+            <div class="form-group">
+                <label>이펙트 타입</label>
+                <select onchange="updateLayerProperty(${index}, 'effectType', this.value); renderEditor();">
+                    <option value="flash" ${effectType === 'flash' ? 'selected' : ''}>번쩍임 (Flash)</option>
+                    <option value="hearts" ${effectType === 'hearts' ? 'selected' : ''}>하트 파티클</option>
+                    <option value="lovelyHearts" ${effectType === 'lovelyHearts' ? 'selected' : ''}>러블리 하트</option>
+                    <option value="loveRain" ${effectType === 'loveRain' ? 'selected' : ''}>하트 비</option>
+                    <option value="filmDust" ${effectType === 'filmDust' ? 'selected' : ''}>필름 먼지</option>
+                    <option value="filmGrain" ${effectType === 'filmGrain' ? 'selected' : ''}>필름 그레인</option>
+                    <option value="filmScratch" ${effectType === 'filmScratch' ? 'selected' : ''}>필름 스크래치</option>
+                    <option value="filmBurn" ${effectType === 'filmBurn' ? 'selected' : ''}>필름 번</option>
+                    <option value="frameSequence" ${effectType === 'frameSequence' ? 'selected' : ''}>프레임 시퀀스</option>
+                    <option value="line" ${effectType === 'line' ? 'selected' : ''}>라인</option>
+                </select>
+            </div>
+            ${renderEffectTypeSpecificProperties(layer, index, effectType)}
+        </div>
+    `;
+}
+
+// 이펙트 타입별 세부 속성
+function renderEffectTypeSpecificProperties(layer, index, effectType) {
+    switch (effectType) {
+        case 'flash':
+            return `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>너비</label>
+                        <input type="number" value="${layer.width || 640}" onchange="updateLayerProperty(${index}, 'width', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>높이</label>
+                        <input type="number" value="${layer.height || 360}" onchange="updateLayerProperty(${index}, 'height', parseFloat(this.value))">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>강도 (0-1)</label>
+                        <input type="number" step="0.1" min="0" max="1" value="${layer.intensity || 0.5}" onchange="updateLayerProperty(${index}, 'intensity', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>색상</label>
+                        <input type="color" value="${layer.color || '#ffffff'}" onchange="updateLayerProperty(${index}, 'color', this.value)">
+                    </div>
+                </div>
+            `;
+        
+        case 'hearts':
+        case 'lovelyHearts':
+        case 'loveRain':
+            return `
+                <div class="form-group">
+                    <label>하트 개수</label>
+                    <input type="number" min="1" max="100" value="${layer.count || 12}" onchange="updateLayerProperty(${index}, 'count', parseFloat(this.value))">
+                </div>
+            `;
+        
+        case 'filmDust':
+        case 'filmScratch':
+            return `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>개수</label>
+                        <input type="number" min="1" max="200" value="${layer.count || (effectType === 'filmDust' ? 80 : 8)}" onchange="updateLayerProperty(${index}, 'count', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>불투명도</label>
+                        <input type="number" step="0.01" min="0" max="1" value="${layer.opacity || 0.25}" onchange="updateLayerProperty(${index}, 'opacity', parseFloat(this.value))">
+                    </div>
+                </div>
+            `;
+        
+        case 'filmGrain':
+            return `
+                <div class="form-group">
+                    <label>그레인 강도 (0-1)</label>
+                    <input type="number" step="0.01" min="0" max="1" value="${layer.amount || 0.15}" onchange="updateLayerProperty(${index}, 'amount', parseFloat(this.value))">
+                </div>
+            `;
+        
+        case 'filmBurn':
+            return `
+                <div class="form-group">
+                    <label>불투명도</label>
+                    <input type="number" step="0.01" min="0" max="1" value="${layer.opacity || 0.18}" onchange="updateLayerProperty(${index}, 'opacity', parseFloat(this.value))">
+                </div>
+            `;
+        
+        case 'frameSequence':
+            return `
+                <div class="form-group">
+                    <label>이름</label>
+                    <input type="text" value="${layer.name || '프레임 시퀀스'}" onchange="updateLayerProperty(${index}, 'name', this.value)">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>최대 프레임 수</label>
+                        <input type="number" value="${layer.maxFrameCount || 0}" onchange="updateLayerProperty(${index}, 'maxFrameCount', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>FPS</label>
+                        <input type="number" value="${layer.fps || 30}" onchange="updateLayerProperty(${index}, 'fps', parseFloat(this.value))">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>반복</label>
+                        <select onchange="updateLayerProperty(${index}, 'loop', this.value)">
+                            <option value="once" ${layer.loop === 'once' ? 'selected' : ''}>한 번</option>
+                            <option value="loop" ${layer.loop === 'loop' ? 'selected' : ''}>반복</option>
+                            <option value="pingpong" ${layer.loop === 'pingpong' ? 'selected' : ''}>왕복</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>스케일 모드</label>
+                        <select onchange="updateLayerProperty(${index}, 'scaleMode', this.value)">
+                            <option value="fit" ${layer.scaleMode === 'fit' ? 'selected' : ''}>맞춤</option>
+                            <option value="cover" ${layer.scaleMode === 'cover' ? 'selected' : ''}>덮기</option>
+                            <option value="none" ${layer.scaleMode === 'none' ? 'selected' : ''}>원본</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        
+        case 'line':
+            return `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>라인 두께</label>
+                        <input type="number" value="${layer.lineWidth || 5}" onchange="updateLayerProperty(${index}, 'lineWidth', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>색상</label>
+                        <input type="color" value="${layer.color || '#ff0000'}" onchange="updateLayerProperty(${index}, 'color', this.value)">
+                    </div>
+                </div>
+            `;
+        
+        default:
+            return '';
+    }
+}
+
 // 애니메이션 섹션
 function renderAnimationSection(layer, index) {
     const animations = layer.animation || [];
@@ -509,6 +676,7 @@ function renderChildrenSection(layer, index) {
                                 ${child.type === 'text' ? `"${child.text || ''}"` : ''}
                                 ${child.type === 'image' ? child.src || '(이미지 없음)' : ''}
                                 ${child.type === 'shape' ? `${child.width}x${child.height}` : ''}
+                                ${child.type === 'effect' ? `${child.effectType || 'effect'}` : ''}
                             </span>
                         </div>
                         <div class="layer-actions">

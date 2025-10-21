@@ -13,6 +13,16 @@
     "scaleMode": "cover",
     "animation": [{}]
   },
+  {
+    "type": "effect",
+    "effectType": "lovelyHearts",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 1,
+    "duration": 4
+  },
 
   {
     "type": "group",
@@ -272,6 +282,17 @@
       }
      
     ]
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 1920,
+    "height": 1080,
+    "start": 3,
+    "duration": 0.2,
+    "color": "#fff",
+    "intensity": 1
   }
-  
 ]

@@ -606,6 +606,50 @@ export default function CanvasPreview({
       }
 
       ctx.restore();
+    } else if (layer.type === "effect") {
+      // 이펙트 레이어 렌더링
+      const effectType = layer.effectType;
+      const effectFn = EFFECT_MAP[effectType];
+      
+      if (effectFn) {
+        ctx.save();
+        
+        // 애니메이션 적용
+        let animOpacity = 1;
+        if (Array.isArray(layer.animation) && layer.animation.length > 1) {
+          const relTime = layer._clipTime !== undefined ? layer._clipTime : currentTime - layer.start;
+          
+          let prev = layer.animation[0];
+          let next = layer.animation[layer.animation.length - 1];
+          
+          if (relTime <= prev.time) {
+            animOpacity = prev.opacity ?? 1;
+          } else if (relTime >= next.time) {
+            animOpacity = next.opacity ?? 1;
+          } else {
+            for (let i = 0; i < layer.animation.length - 1; i++) {
+              const kf1 = layer.animation[i];
+              const kf2 = layer.animation[i + 1];
+              if (relTime >= kf1.time && relTime <= kf2.time) {
+                const t = (relTime - kf1.time) / (kf2.time - kf1.time);
+                const easedT = kf2.easing ? applyEasing(t, kf2.easing) : t;
+                
+                const opacity1 = kf1.opacity ?? 1;
+                const opacity2 = kf2.opacity ?? 1;
+                animOpacity = opacity1 + (opacity2 - opacity1) * easedT;
+                break;
+              }
+            }
+          }
+        }
+        
+        ctx.globalAlpha = animOpacity * (layer.opacity ?? 1);
+        
+        // 이펙트 함수 호출
+        effectFn(ctx, layer, currentTime, { width: canvasWidth, height: canvasHeight });
+        
+        ctx.restore();
+      }
     }
 
     ctx.restore();
