@@ -1,0 +1,121 @@
+---
+description: "이미지 슬라이드 애니메이션 파라미터 가이드"
+globs: "*.json"
+---
+
+# 이미지 슬라이드 애니메이션 파라미터 가이드
+
+이 규칙은 비디오 에디터에서 이미지 슬라이드 애니메이션을 구현할 때 필요한 파라미터들을 정의합니다.
+
+## 기본 Shape 레이어 구조
+
+```json
+{
+  "type": "shape",
+  "shapeType": "rect",
+  "width": 1860,
+  "height": 1020,
+  "fillColor": "#ff00ff",
+  "strokeColor": "#deaaaa",
+  "strokeWidth": 100,
+  "imageSrc": "/files/images/clip_01-ext/cexit4.png",
+  "imageScaleMode": "cover",
+  "imageAlign": "center",
+  "imageVerticalAlign": "center",
+  "x": 30,
+  "y": 30,
+  "align": "left",
+  "verticalAlign": "top",
+  "start": 17,
+  "duration": 6,
+  "animation": [...]
+}
+```
+
+## 슬라이드 애니메이션 파라미터
+
+### 1. 위치 파라미터
+- **x**: 가로 위치 (픽셀 단위)
+- **y**: 세로 위치 (픽셀 단위)
+- **align**: 가로 정렬 ("left", "center", "right")
+- **verticalAlign**: 세로 정렬 ("top", "middle", "bottom")
+
+### 2. 크기 파라미터
+- **width**: 도형 너비 (픽셀 단위)
+- **height**: 도형 높이 (픽셀 단위)
+- **scale**: 전체 스케일 배율 (기본값: 1)
+
+### 3. 이미지 파라미터
+- **imageSrc**: 이미지 파일 경로
+- **imageScaleMode**: 이미지 스케일 모드 ("cover", "contain", "fill")
+- **imageAlign**: 이미지 가로 정렬
+- **imageVerticalAlign**: 이미지 세로 정렬
+
+### 4. 시각적 파라미터
+- **fillColor**: 배경색 (HEX 코드)
+- **strokeColor**: 테두리색 (HEX 코드)
+- **strokeWidth**: 테두리 두께 (픽셀 단위)
+- **opacity**: 투명도 (0~1)
+
+### 5. 시간 파라미터
+- **start**: 시작 시간 (초 단위)
+- **duration**: 지속 시간 (초 단위)
+
+## 슬라이드 애니메이션 패턴
+
+### 좌우 슬라이드 (가로 이동)
+```json
+"animation": [
+  { "time": 0, "x": -1980, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
+  { "time": 1, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" },
+  { "time": 5, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
+  { "time": 6, "x": 1980, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" }
+]
+```
+
+### 상하 슬라이드 (세로 이동)
+```json
+"animation": [
+  { "time": 0, "x": 10, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
+  { "time": 2, "x": 10, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
+  { "time": 3, "x": 10, "y": -1200, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" }
+]
+```
+
+## 애니메이션 키프레임 구조
+
+각 키프레임은 다음 속성을 가질 수 있습니다:
+- **time**: 키프레임 시간 (초 단위)
+- **x**: 가로 위치 오프셋
+- **y**: 세로 위치 오프셋
+- **scale**: 스케일 배율
+- **rotation**: 회전 각도 (라디안)
+- **opacity**: 투명도
+- **easing**: 이징 함수 ("easeOutQuad", "easeInQuad", "linear" 등)
+
+## 일반적인 슬라이드 방향별 x 좌표값
+
+### 1920px 캔버스 기준
+- **왼쪽에서 시작**: x: -1980
+- **오른쪽에서 시작**: x: 1980
+- **중앙 위치**: x: 0
+- **왼쪽으로 나가기**: x: -1980
+- **오른쪽으로 나가기**: x: 1980
+
+### 1080px 캔버스 기준 (세로)
+- **위에서 시작**: y: -1200
+- **아래에서 시작**: y: 1200
+- **중앙 위치**: y: 0
+- **위로 나가기**: y: -1200
+- **아래로 나가기**: y: 1200
+
+## 권장 이징 함수
+- **easeOutQuad**: 자연스러운 감속 (가장 많이 사용)
+- **easeInQuad**: 자연스러운 가속
+- **easeInOutQuad**: 양쪽 모두 부드럽게
+- **linear**: 일정한 속도
+
+## 그룹 레이어 사용 시 주의사항
+- 그룹의 **duration**은 모든 children의 실행 시간을 포함해야 함
+- children의 **start** 시간은 그룹의 start 시간을 기준으로 함
+- 그룹 밖으로 나가는 children은 독립 레이어로 분리 권장

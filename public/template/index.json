@@ -1,6 +1,7 @@
 {
   "templates": [
     "clip_01",
+    "clip_01-ext",
     "EASING_DEMO",
     "LOVE"
   ]
