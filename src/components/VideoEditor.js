@@ -1528,8 +1528,8 @@ function VideoEditor() {
         />
       )}
 
-      {/* 오디오 상태 디버깅 */}
-      {audioSrc && (
+      {/* 오디오 상태 디버깅 - 숨김 처리 */}
+      {false && audioSrc && (
         <div
           style={{
             position: "fixed",
