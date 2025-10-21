@@ -19,7 +19,7 @@
   justify-content: space-between;
   color: #aaa;
   font-size: 12px;
-  padding: 0 10px;
+  padding: 0;
 }
 .timeline-current-time {
   position: absolute;
@@ -37,9 +37,9 @@
 }
 .timeline-tick {
   flex: 1;
-  text-align: center;
   font-size: 10px;
   color: #999;
+  text-align: left;
 }
 .timeline-tracks {
   max-height: 200px;
@@ -153,6 +153,13 @@
 }
 .timeline-clip.clip-effect.active {
   background-color: #f1e206;
+}
+.timeline-clip.clip-shape {
+  background-color: #e91e63;
+}
+
+.timeline-clip.clip-group {
+  background-color: #9c27b0;
 }
 .timeline-clip.clip-template {
   background-color: #4caf50;

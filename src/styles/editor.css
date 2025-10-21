@@ -542,3 +542,11 @@ button:hover {
 .canvas-container{
   height: 100%;
 }
+
+.timeline-tick {
+  text-align: left;
+}
+
+.timeline-ticks{
+  padding:0;
+}

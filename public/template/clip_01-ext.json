@@ -151,7 +151,8 @@
         "y": 30,
         "align": "left",
         "verticalAlign": "top",
-        "start": 13, 
+        "start": 13,
+        "duration": 7,
           "animation": [
             { "time": 0, "x": 1980, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
             { "time": 3, "x": 1970, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 }, 
@@ -179,7 +180,8 @@
     "y": 30,
     "align": "left",
     "verticalAlign": "top",
-    "start": 17, 
+    "start": 17,
+    "duration": 6,
       "animation": [
         { "time": 0, "x": -1980, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 }, 
         { "time": 1, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" },
@@ -203,7 +205,8 @@
     "y": 30,
     "align": "left",
     "verticalAlign": "top",
-    "start": 23, 
+    "start": 23,
+    "duration": 5,
       "animation": [
         { "time": 0, "x": 0, "y": -1200, "scale": 1, "rotation": 0, "opacity": 1 },
         { "time": 2, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" },
@@ -227,7 +230,8 @@
     "y": 30,
     "align": "left",
     "verticalAlign": "top",
-    "start": 28, 
+    "start": 28,
+    "duration": 4,
       "animation": [
         { "time": 0, "x": -1980, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
         { "time": 1, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" },
@@ -251,7 +255,8 @@
     "y": 30,
     "align": "left",
     "verticalAlign": "top",
-    "start": 32, 
+    "start": 32,
+    "duration": 5,
       "animation": [
         { "time": 0, "x": 0, "y": 1200, "scale": 1, "rotation": 0, "opacity": 1 },
         { "time": 2, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" },
@@ -275,7 +280,8 @@
     "y": 30,
     "align": "left",
     "verticalAlign": "top",
-    "start": 37, 
+    "start": 37,
+    "duration": 4,
       "animation": [
         { "time": 0, "x": 1980, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
         { "time": 1, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" },
