@@ -8,7 +8,7 @@
     "align": "center",
     "verticalAlign": "middle",
     "start": 0,
-    "duration": 30,
+    "duration": 12,
     "scale": 1,
     "scaleMode": "cover",
     "animation": [{}]
@@ -56,7 +56,7 @@
         "align": "left",
         "verticalAlign": "top",
         "start": 0,
-        "duration": 10,
+        "duration": 4,
         "animation": [
           { "time": 3, "opacity": 1, "easing": "easeOutQuad" },
           { "time": 4, "opacity": 0, "easing": "easeOutQuad" }
@@ -127,7 +127,7 @@
     "align": "center",
     "verticalAlign": "middle",
     "start": 0.5,
-    "duration": 16,
+    "duration": 6,
     "animation": [
       { "time": 0, "x": -400, "y": 250, "scale": 1, "opacity": 0.3 },
       { "time": 1, "x": 50, "y": 250, "scale": 1, "opacity": 1, "easing": "easeOutQuad" },
@@ -152,7 +152,7 @@
     "align": "center",
     "verticalAlign": "middle",
     "start": 5,
-    "duration": 16,
+    "duration": 7,
     "animation": [
       { "time": 0, "x": -400, "y": 250, "scale": 1, "opacity": 0.3 },
       { "time": 1, "x": 100, "y": 250, "scale": 1, "opacity": 1, "easing": "easeOutQuad" },
@@ -167,7 +167,7 @@
     "align": "left",
     "verticalAlign": "top",
     "start": 6,
-    "duration": 10,
+    "duration": 6,
     "animation": [
       { "time": 0, "x": -200, "y": 0, "scale": 1, "rotation": 0, "opacity": 0.3 },
       { "time": 1, "x": 240, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" },
