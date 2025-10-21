@@ -36,6 +36,18 @@ function VideoEditor() {
 
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // 클립 선택 핸들러 (레이어 선택 해제)
+  const handleSelectClip = (clipId) => {
+    setSelectedClipId(clipId);
+    setSelectedLayerIndex(null); // 레이어 선택 해제
+  };
+
+  // 레이어 선택 핸들러 (클립 선택 해제)
+  const handleSelectLayer = (layerIndex) => {
+    setSelectedLayerIndex(layerIndex);
+    setSelectedClipId(null); // 클립 선택 해제
+  };
+
   const animationRef = useRef();
 
   const audioRef = useRef(null);
@@ -441,6 +453,15 @@ function VideoEditor() {
     }
   };
 
+  // 클립의 레이어 변경 핸들러
+  const handleClipLayerChange = (clipId, newLayers) => {
+    setClips((prev) =>
+      prev.map((clip) =>
+        clip.id === clipId ? { ...clip, layers: newLayers } : clip
+      )
+    );
+  };
+
   // 클립 삭제
   const handleClipRemove = (clipId) => {
     setClips((prev) => {
@@ -549,11 +570,42 @@ function VideoEditor() {
     }
   }, []);
 
-  // layers가 바뀔 때마다 localStorage에 저장
+  // layers가 바뀔 때마다 localStorage에 저장 (이미지가 있을 때는 저장하지 않음)
 
   useEffect(() => {
     if (layers.length > 0) {
-      localStorage.setItem("layers", JSON.stringify(layers));
+      // 이미지가 포함된 레이어가 있는지 확인 (ObjectURL도 감지)
+      const hasImageData = layers.some(layer => {
+        if (layer.type === 'image' && layer.src && (layer.src.startsWith('data:') || layer.src.startsWith('blob:'))) {
+          return true; // Base64 또는 ObjectURL 이미지 데이터
+        }
+        if (layer.type === 'shape' && layer.imageSrc && (layer.imageSrc.startsWith('data:') || layer.imageSrc.startsWith('blob:'))) {
+          return true; // Base64 또는 ObjectURL 이미지 데이터
+        }
+        if (layer.type === 'group' && layer.children) {
+          return layer.children.some(child => {
+            if (child.type === 'image' && child.src && (child.src.startsWith('data:') || child.src.startsWith('blob:'))) {
+              return true;
+            }
+            if (child.type === 'shape' && child.imageSrc && (child.imageSrc.startsWith('data:') || child.imageSrc.startsWith('blob:'))) {
+              return true;
+            }
+            return false;
+          });
+        }
+        return false;
+      });
+
+      if (!hasImageData) {
+        // 이미지 데이터가 없을 때만 localStorage에 저장
+        try {
+          localStorage.setItem("layers", JSON.stringify(layers));
+        } catch (error) {
+          console.warn("localStorage 저장 실패:", error);
+        }
+      } else {
+        console.log("이미지 데이터가 포함되어 localStorage 저장을 건너뜁니다.");
+      }
     }
   }, [layers]);
 
@@ -1242,7 +1294,7 @@ function VideoEditor() {
             width={canvasWidth}
             height={canvasHeight}
             selectedLayerIndex={selectedLayerIndex}
-            onSelectLayer={setSelectedLayerIndex}
+            onSelectLayer={handleSelectLayer}
             onMoveLayer={(idx, x, y) => {
               setLayers((layers) =>
                 layers.map((layer, i) =>
@@ -1405,7 +1457,7 @@ function VideoEditor() {
             onClipRemove={handleClipRemove}
             onClipResize={handleClipResize}
             onClipMove={handleClipMove}
-            onSelectClip={setSelectedClipId}
+            onSelectClip={handleSelectClip}
             selectedClipId={selectedClipId}
             onAudioTrackRemove={handleRemoveAudioTrack}
             onAudioTrackResize={handleAudioTrackResize}
@@ -1413,7 +1465,7 @@ function VideoEditor() {
             onSelectAudioTrack={setSelectedAudioTrackId}
             selectedAudioTrackId={selectedAudioTrackId}
             selectedLayerIndex={selectedLayerIndex}
-            onSelectLayer={setSelectedLayerIndex}
+            onSelectLayer={handleSelectLayer}
             playhead={playhead}
             onPlayheadChange={handlePlayheadChange}
             isClipEditMode={isClipEditMode}
@@ -1435,12 +1487,27 @@ function VideoEditor() {
           allLayers={layers}
           clips={clips}
           audioSrc={audioSrc}
+          selectedClipId={selectedClipId}
+          onClipLayerChange={handleClipLayerChange}
+          adminMode={false} // 유저 모드로 설정 (true로 변경하면 관리자 모드)
           onChange={(updatedLayer) => {
-            setLayers((layers) =>
-              layers.map((layer, i) =>
+            setLayers((layers) => {
+              const newLayers = layers.map((layer, i) =>
                 i === selectedLayerIndex ? updatedLayer : layer
-              )
-            );
+              );
+              
+              // 이미지가 변경된 경우 강제 리렌더링을 위한 플래그 추가
+              if (updatedLayer.src !== layers[selectedLayerIndex]?.src || 
+                  updatedLayer.imageSrc !== layers[selectedLayerIndex]?.imageSrc ||
+                  JSON.stringify(updatedLayer.children) !== JSON.stringify(layers[selectedLayerIndex]?.children)) {
+                // 강제 리렌더링을 위해 약간의 지연 후 상태 업데이트
+                setTimeout(() => {
+                  setLayers(prev => [...prev]);
+                }, 50);
+              }
+              
+              return newLayers;
+            });
           }}
         />
       </div>

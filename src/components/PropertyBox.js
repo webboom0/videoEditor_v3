@@ -8,7 +8,18 @@ export default function PropertyBox({
   clips,
   audioSrc,
   onChange,
+  selectedClipId, // 선택된 클립 ID 추가
+  onClipLayerChange, // 클립의 레이어 변경 핸들러 추가
+  adminMode = false, // 관리자 모드 플래그 (기본값: 유저 모드)
 }) {
+  console.log('PropertyBox 렌더링:', {
+    selectedClipId,
+    selectedLayerIndex,
+    clips: clips?.length,
+    layer: layer?.type,
+    adminMode
+  });
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragType, setDragType] = useState(null); // 'move', 'resize-left', 'resize-right', 'resize-top', 'resize-bottom'
@@ -115,8 +126,554 @@ export default function PropertyBox({
     }
   };
 
+  // 선택된 클립 찾기
+  const selectedClip = selectedClipId 
+    ? clips.find(clip => clip.id === selectedClipId) 
+    : null;
+
+  // 레이어에서 모든 이미지를 찾는 함수 (재귀적으로)
+  const findAllImages = (layers) => {
+    const images = [];
+    
+    if (!Array.isArray(layers)) {
+      console.warn('layers가 배열이 아닙니다:', layers);
+      return images;
+    }
+    
+    const processLayer = (layer, layerIndex, parentPath = []) => {
+      console.log(`레이어 ${layerIndex} 처리 중:`, layer.type, layer);
+      
+      // image 타입: src 속성
+      if (layer.type === 'image' && layer.src) {
+        console.log(`이미지 발견 (레이어 ${layerIndex}):`, layer.src);
+        images.push({
+          layerIndex,
+          parentPath,
+          childPath: null,
+          imageKey: 'src',
+          imageSrc: layer.src,
+          label: `이미지 (${layer.name || 'image'})`
+        });
+      }
+      
+      // shape 타입: imageSrc 속성
+      if (layer.type === 'shape' && layer.imageSrc) {
+        console.log(`도형 이미지 발견 (레이어 ${layerIndex}):`, layer.imageSrc);
+        images.push({
+          layerIndex,
+          parentPath,
+          childPath: null,
+          imageKey: 'imageSrc',
+          imageSrc: layer.imageSrc,
+          label: `도형 이미지 (${layer.shapeType || 'shape'})`
+        });
+      }
+      
+      // group 타입: children 배열 안의 이미지들
+      if (layer.type === 'group') {
+        console.log(`그룹 발견 (레이어 ${layerIndex}):`, layer);
+        console.log('children 확인:', layer.children);
+        
+        if (Array.isArray(layer.children) && layer.children.length > 0) {
+          console.log(`그룹 내 children 개수: ${layer.children.length}`);
+          
+          layer.children.forEach((child, childIndex) => {
+            console.log(`  Child ${childIndex}:`, child.type, child);
+            
+            if (child.type === 'image' && child.src) {
+              console.log(`    그룹 내 이미지 발견:`, child.src);
+              images.push({
+                layerIndex,
+                parentPath,
+                childPath: childIndex,
+                imageKey: 'src',
+                imageSrc: child.src,
+                label: `그룹 > 이미지 ${childIndex + 1}`
+              });
+            }
+            
+            if (child.type === 'shape' && child.imageSrc) {
+              console.log(`    그룹 내 도형 이미지 발견:`, child.imageSrc);
+              images.push({
+                layerIndex,
+                parentPath,
+                childPath: childIndex,
+                imageKey: 'imageSrc',
+                imageSrc: child.imageSrc,
+                label: `그룹 > 도형 이미지 ${childIndex + 1}`
+              });
+            }
+          });
+        } else {
+          console.warn('children이 배열이 아니거나 비어있습니다');
+        }
+      }
+    };
+    
+    layers.forEach((layer, index) => {
+      processLayer(layer, index);
+    });
+    
+    console.log('최종 찾은 이미지들:', images);
+    return images;
+  };
+
+  // 텍스트를 찾는 함수 (group 내부도 포함)
+  const findAllTexts = (layers) => {
+    const texts = [];
+    
+    layers.forEach((layer, layerIndex) => {
+      if (layer.type === 'text') {
+        texts.push({
+          layerIndex,
+          childPath: null,
+          text: layer.text,
+          label: `텍스트`
+        });
+      }
+      
+      // group 안의 텍스트도 찾기
+      if (layer.type === 'group' && Array.isArray(layer.children)) {
+        layer.children.forEach((child, childIndex) => {
+          if (child.type === 'text') {
+            texts.push({
+              layerIndex,
+              childPath: childIndex,
+              text: child.text,
+              label: `그룹 > 텍스트 ${childIndex + 1}`
+            });
+          }
+        });
+      }
+    });
+    
+    return texts;
+  };
+
+  // 클립이 선택되었고 유저 모드일 때는 클립 편집 UI 표시
+  if (selectedClip && !adminMode) {
+    // 디버깅: 클립 레이어 구조 확인
+    console.log('선택된 클립:', selectedClip);
+    console.log('클립 레이어들:', selectedClip.layers);
+    
+    const allImages = findAllImages(selectedClip.layers);
+    const allTexts = findAllTexts(selectedClip.layers);
+    
+    console.log('찾은 이미지들:', allImages);
+    console.log('찾은 텍스트들:', allTexts);
+
+    const handleClipImageUpload = (imageInfo, file) => {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const newLayers = [...selectedClip.layers];
+        const { layerIndex, childPath, imageKey } = imageInfo;
+        
+        if (childPath !== null) {
+          // group 안의 이미지
+          const newChildren = [...newLayers[layerIndex].children];
+          newChildren[childPath] = {
+            ...newChildren[childPath],
+            [imageKey]: ev.target.result
+          };
+          newLayers[layerIndex] = {
+            ...newLayers[layerIndex],
+            children: newChildren
+          };
+        } else {
+          // 최상위 레이어의 이미지
+          newLayers[layerIndex] = {
+            ...newLayers[layerIndex],
+            [imageKey]: ev.target.result
+          };
+        }
+        
+        onClipLayerChange && onClipLayerChange(selectedClipId, newLayers);
+      };
+      reader.readAsDataURL(file);
+    };
+
+    const handleClipTextChange = (textInfo, newText) => {
+      const newLayers = [...selectedClip.layers];
+      const { layerIndex, childPath } = textInfo;
+      
+      if (childPath !== null) {
+        // group 안의 텍스트
+        const newChildren = [...newLayers[layerIndex].children];
+        newChildren[childPath] = {
+          ...newChildren[childPath],
+          text: newText
+        };
+        newLayers[layerIndex] = {
+          ...newLayers[layerIndex],
+          children: newChildren
+        };
+      } else {
+        // 최상위 레이어의 텍스트
+        newLayers[layerIndex] = {
+          ...newLayers[layerIndex],
+          text: newText
+        };
+      }
+      
+      onClipLayerChange && onClipLayerChange(selectedClipId, newLayers);
+    };
+
+    return (
+      <div className="property-box user-mode">
+        <h4>클립 편집: {selectedClip.name}</h4>
+        
+        {/* 이미지 편집 섹션 */}
+        {allImages.length > 0 && (
+          <div style={{ marginBottom: '20px', padding: '15px', background: '#f9f9f9', borderRadius: '5px' }}>
+            <h5 style={{ marginBottom: '10px', color: '#333' }}>📷 이미지 변경</h5>
+            {allImages.map((imageInfo, idx) => (
+              <div key={`img-${idx}`} style={{ marginBottom: '15px', padding: '10px', background: 'white', borderRadius: '4px', border: '1px solid #ddd' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>
+                  {imageInfo.label}
+                </label>
+                {imageInfo.imageSrc && (
+                  <div style={{ marginBottom: '10px', textAlign: 'center' }}>
+                    <img 
+                      src={imageInfo.imageSrc} 
+                      alt="미리보기" 
+                      style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '4px', border: '1px solid #ccc' }}
+                    />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    document.getElementById(`clip-img-upload-${idx}`).click();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    background: '#3498db',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  🖼️ 이미지 변경
+                </button>
+                <input
+                  id={`clip-img-upload-${idx}`}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleClipImageUpload(imageInfo, e.target.files[0]);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 텍스트 편집 섹션 */}
+        {allTexts.length > 0 && (
+          <div style={{ marginBottom: '20px', padding: '15px', background: '#f9f9f9', borderRadius: '5px' }}>
+            <h5 style={{ marginBottom: '10px', color: '#333' }}>✏️ 텍스트 수정</h5>
+            {allTexts.map((textInfo, idx) => (
+              <div key={`text-${idx}`} style={{ marginBottom: '15px', padding: '10px', background: 'white', borderRadius: '4px', border: '1px solid #ddd' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>
+                  {textInfo.label}
+                </label>
+                <input
+                  type="text"
+                  value={textInfo.text || ''}
+                  onChange={(e) => handleClipTextChange(textInfo, e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '14px',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="텍스트를 입력하세요"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {allImages.length === 0 && allTexts.length === 0 && (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+            이 클립에는 수정 가능한 이미지나 텍스트가 없습니다.
+          </div>
+        )}
+
+        <div style={{ marginTop: '20px', padding: '10px', background: '#fff3cd', borderRadius: '5px', fontSize: '12px', color: '#856404' }}>
+          💡 이미지를 변경하거나 텍스트를 수정하면 즉시 반영됩니다.
+        </div>
+      </div>
+    );
+  }
+
+  // 레이어가 선택되지 않았으면 null 반환
   if (!layer) return null;
   const maxFrame = 515;
+  
+  // 유저 모드이고 레이어가 선택된 경우 간소화된 UI 표시
+  if (!adminMode && layer) {
+    // 그룹 타입인 경우 그룹 안의 이미지들을 찾기
+    const isGroup = layer.type === 'group';
+    const groupImages = isGroup ? findAllImages([layer]) : [];
+    const groupTexts = isGroup ? findAllTexts([layer]) : [];
+    
+    const hasImage = layer.type === 'image' && layer.src;
+    const hasShapeImage = layer.type === 'shape' && layer.imageSrc;
+    const hasText = layer.type === 'text';
+
+    return (
+      <div className="property-box user-mode">
+        <h4>레이어 편집: {layer.type === 'group' ? '그룹' : layer.type}</h4>
+        
+        {/* 그룹 레이어 - 그룹 안의 모든 이미지 */}
+        {isGroup && groupImages.length > 0 && (
+          <div style={{ padding: '15px', background: '#f9f9f9', borderRadius: '5px' }}>
+            <h5 style={{ marginBottom: '10px', color: '#333' }}>📷 그룹 내 이미지 변경</h5>
+            {groupImages.map((imageInfo, idx) => (
+              <div key={`group-img-${idx}`} style={{ marginBottom: '15px', padding: '10px', background: 'white', borderRadius: '4px', border: '1px solid #ddd' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>
+                  {imageInfo.label}
+                </label>
+                {imageInfo.imageSrc && (
+                  <div style={{ marginBottom: '10px', textAlign: 'center' }}>
+                    <img 
+                      src={imageInfo.imageSrc} 
+                      alt="미리보기" 
+                      style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '4px', border: '1px solid #ccc' }}
+                    />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    document.getElementById(`group-img-upload-${idx}`).click();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    background: '#3498db',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  🖼️ 이미지 변경
+                </button>
+                <input
+                  id={`group-img-upload-${idx}`}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      const file = e.target.files[0];
+                      // Base64 대신 ObjectURL 사용 (메모리 효율적)
+                      const imageUrl = URL.createObjectURL(file);
+                      
+                      // 그룹 내 children 업데이트
+                      const newChildren = [...layer.children];
+                      newChildren[imageInfo.childPath] = {
+                        ...newChildren[imageInfo.childPath],
+                        [imageInfo.imageKey]: imageUrl
+                      };
+                      handleChange('children', newChildren);
+                      e.target.value = '';
+                    }
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 그룹 레이어 - 그룹 안의 모든 텍스트 */}
+        {isGroup && groupTexts.length > 0 && (
+          <div style={{ padding: '15px', background: '#f9f9f9', borderRadius: '5px' }}>
+            <h5 style={{ marginBottom: '10px', color: '#333' }}>✏️ 그룹 내 텍스트 수정</h5>
+            {groupTexts.map((textInfo, idx) => (
+              <div key={`group-text-${idx}`} style={{ marginBottom: '15px', padding: '10px', background: 'white', borderRadius: '4px', border: '1px solid #ddd' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>
+                  {textInfo.label}
+                </label>
+                <input
+                  type="text"
+                  value={textInfo.text || ''}
+                  onChange={(e) => {
+                    // 그룹 내 children 업데이트
+                    const newChildren = [...layer.children];
+                    newChildren[textInfo.childPath] = {
+                      ...newChildren[textInfo.childPath],
+                      text: e.target.value
+                    };
+                    handleChange('children', newChildren);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    fontSize: '14px',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    boxSizing: 'border-box'
+                  }}
+                  placeholder="텍스트를 입력하세요"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 단일 이미지 레이어 (image 타입) */}
+        {hasImage && (
+          <div style={{ padding: '15px', background: '#f9f9f9', borderRadius: '5px' }}>
+            <h5 style={{ marginBottom: '10px', color: '#333' }}>📷 이미지 변경</h5>
+            {layer.src && (
+              <div style={{ marginBottom: '10px', textAlign: 'center' }}>
+                <img 
+                  src={layer.src} 
+                  alt="미리보기" 
+                  style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                document.getElementById('layer-img-upload').click();
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                background: '#3498db',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              🖼️ 이미지 변경
+            </button>
+            <input
+              id="layer-img-upload"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  const file = e.target.files[0];
+                  // ObjectURL 사용 (메모리 효율적)
+                  const imageUrl = URL.createObjectURL(file);
+                  handleChange('src', imageUrl);
+                  e.target.value = '';
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {/* 도형 이미지 레이어 (shape 타입) */}
+        {hasShapeImage && (
+          <div style={{ padding: '15px', background: '#f9f9f9', borderRadius: '5px' }}>
+            <h5 style={{ marginBottom: '10px', color: '#333' }}>📷 도형 이미지 변경</h5>
+            {layer.imageSrc && (
+              <div style={{ marginBottom: '10px', textAlign: 'center' }}>
+                <img 
+                  src={layer.imageSrc} 
+                  alt="미리보기" 
+                  style={{ maxWidth: '100%', maxHeight: '150px', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                document.getElementById('layer-shape-img-upload').click();
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                background: '#3498db',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}
+            >
+              🖼️ 이미지 변경
+            </button>
+            <input
+              id="layer-shape-img-upload"
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  const file = e.target.files[0];
+                  // ObjectURL 사용 (메모리 효율적)
+                  const imageUrl = URL.createObjectURL(file);
+                  handleChange('imageSrc', imageUrl);
+                  e.target.value = '';
+                }
+              }}
+            />
+          </div>
+        )}
+
+        {/* 텍스트 레이어 */}
+        {hasText && (
+          <div style={{ padding: '15px', background: '#f9f9f9', borderRadius: '5px' }}>
+            <h5 style={{ marginBottom: '10px', color: '#333' }}>✏️ 텍스트 수정</h5>
+            <input
+              type="text"
+              value={layer.text || ''}
+              onChange={(e) => handleChange('text', e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '14px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                boxSizing: 'border-box'
+              }}
+              placeholder="텍스트를 입력하세요"
+            />
+          </div>
+        )}
+
+        {!hasImage && !hasShapeImage && !hasText && !isGroup && (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+            이 레이어는 유저 모드에서 수정할 수 없습니다.
+          </div>
+        )}
+
+        {isGroup && groupImages.length === 0 && groupTexts.length === 0 && (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+            이 그룹에는 수정 가능한 이미지나 텍스트가 없습니다.
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // 관리자 모드 - 기존 UI
   // 공통 속성
 
   // 애니메이션 속성 변경 핸들러

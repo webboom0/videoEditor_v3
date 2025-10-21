@@ -847,6 +847,26 @@ export default function CanvasPreview({
     }
   };
 
+  // wheel 이벤트를 passive: false로 설정
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const handleWheelPassive = (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        if (typeof setZoom === 'function') {
+          setZoom(prevZoom => Math.max(0.1, Math.min(5, prevZoom * delta)));
+        }
+      };
+
+      canvas.addEventListener('wheel', handleWheelPassive, { passive: false });
+      
+      return () => {
+        canvas.removeEventListener('wheel', handleWheelPassive);
+      };
+    }
+  }, [setZoom]);
+
   return (
     <div className="canvas-container">
       <canvas
@@ -854,7 +874,6 @@ export default function CanvasPreview({
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onWheel={handleWheel}
         style={{
           cursor: isDragging ? "grabbing" : "grab",
           border: "1px solid #ccc",
