@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { getLayerDuration } from "../../utils/layerUtils";
 
 function Clip({ clip, onDoubleClick, onRemove, onResize, onMove, onSelect, isSelected }) {
   const [isResizing, setIsResizing] = useState(false);
@@ -101,7 +102,7 @@ function Clip({ clip, onDoubleClick, onRemove, onResize, onMove, onSelect, isSel
       }`}
       style={{
         left: `${(clip.start / 600) * 100}%`,
-        width: `${(clip.duration / 600) * 100}%`,
+        width: `${(getLayerDuration(clip) / 600) * 100}%`,
         background: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${thumbnailUrl})`,
         backgroundSize: "cover",
         backgroundPosition: "center",

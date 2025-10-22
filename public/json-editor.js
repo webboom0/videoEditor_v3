@@ -2,6 +2,31 @@
 let layers = [];
 let selectedLayerIndex = null;
 
+// duration 계산 함수
+function getLayerDuration(layer) {
+    // duration이 명시적으로 숫자로 지정된 경우
+    if (typeof layer.duration === 'number') {
+        return layer.duration;
+    }
+    
+    // duration이 "auto"인 경우
+    if (layer.duration === 'auto' || layer.duration === 'AUTO') {
+        // animation 배열이 있고 비어있지 않은 경우
+        if (Array.isArray(layer.animation) && layer.animation.length > 0) {
+            // 마지막 키프레임의 time 값을 찾음
+            const lastKeyframe = layer.animation[layer.animation.length - 1];
+            if (lastKeyframe && typeof lastKeyframe.time === 'number') {
+                return lastKeyframe.time;
+            }
+        }
+        // animation이 없거나 유효하지 않은 경우 기본값 0
+        return 0;
+    }
+    
+    // duration이 지정되지 않은 경우 기본값
+    return layer.duration || 0;
+}
+
 // 레이어 기본값
 const defaultValues = {
     common: {
@@ -150,7 +175,7 @@ function renderLayersList() {
                 </div>
             </div>
             <div class="layer-info">
-                시작: ${layer.start}s | 길이: ${layer.duration}s
+                시작: ${layer.start}s | 길이: ${layer.duration === 'auto' ? `auto (${getLayerDuration(layer)}s)` : `${layer.duration}s`}
                 ${layer.type === 'group' && layer.children ? ` | 자식: ${layer.children.length}개` : ''}
                 ${layer.type === 'effect' ? ` | ${layer.effectType || 'effect'}` : ''}
             </div>
@@ -219,8 +244,9 @@ function renderCommonProperties(layer, index) {
                     <input type="number" step="0.1" value="${layer.start}" onchange="updateLayerProperty(${index}, 'start', parseFloat(this.value))">
                 </div>
                 <div class="form-group">
-                    <label>지속 시간 (초)</label>
-                    <input type="number" step="0.1" value="${layer.duration}" onchange="updateLayerProperty(${index}, 'duration', parseFloat(this.value))">
+                    <label>지속 시간 (초 또는 'auto')</label>
+                    <input type="text" value="${layer.duration}" onchange="updateLayerProperty(${index}, 'duration', this.value === 'auto' || this.value === 'AUTO' ? 'auto' : parseFloat(this.value))" placeholder="숫자 또는 'auto'">
+                    ${layer.duration === 'auto' ? `<span style="font-size: 12px; color: #888;"> (실제: ${getLayerDuration(layer)}초)</span>` : ''}
                 </div>
             </div>
             <div class="form-row">

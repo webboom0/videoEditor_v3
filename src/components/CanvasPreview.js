@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { EFFECT_MAP } from "../effects/effectUtils";
 import { applyEasing } from "../utils/easingFunctions";
+import { getLayerDuration } from "../utils/layerUtils";
 
 // 이미지 캐싱 및 로딩 함수
 const imageCache = {};
@@ -77,9 +78,10 @@ export default function CanvasPreview({
 
   // 레이어 렌더링 함수 (재귀 호출을 위해 분리)
   const renderLayer = (layer, ctx, width, height, currentTime, setZoom) => {
+    const layerDuration = getLayerDuration(layer);
     if (
       currentTime < layer.start ||
-      currentTime > layer.start + layer.duration
+      currentTime > layer.start + layerDuration
     )
       return;
 
@@ -688,9 +690,10 @@ export default function CanvasPreview({
     // 텍스트 레이어는 항상 맨 위에 그림
     layers.forEach((layer, idx) => {
       if (layer.type !== "text") return;
+      const layerDuration = getLayerDuration(layer);
       if (
         currentTime < layer.start ||
-        currentTime > layer.start + layer.duration
+        currentTime > layer.start + layerDuration
       )
         return;
 

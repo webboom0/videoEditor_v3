@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import ClipTrack from "./ClipTrack";
 import Clip from "./Clip";
 import "../../styles/timeline.css";
+import { getLayerDuration } from "../../utils/layerUtils";
 
 function Timeline({
   mediaFiles,
@@ -133,7 +134,7 @@ function Timeline({
                 }`}
                 style={{
                   left: `${(layer.start / LAYER_TIMELINE_DURATION) * 100}%`,
-                  width: `${(layer.duration / LAYER_TIMELINE_DURATION) * 100}%`,
+                  width: `${(getLayerDuration(layer) / LAYER_TIMELINE_DURATION) * 100}%`,
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -295,7 +296,7 @@ function Timeline({
               }`}
               style={{
                 left: `${(layer.start / CLIP_TIMELINE_DURATION) * 100}%`,
-                width: `${(layer.duration / CLIP_TIMELINE_DURATION) * 100}%`,
+                width: `${(getLayerDuration(layer) / CLIP_TIMELINE_DURATION) * 100}%`,
               }}
               onClick={(e) => {
                 e.stopPropagation();

@@ -8,10 +8,13 @@
     "align": "center",
     "verticalAlign": "middle",
     "start": 0,
-    "duration": 12,
+    "duration": "auto",
     "scale": 1,
     "scaleMode": "cover",
-    "animation": [{}]
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
+      { "time": 12, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "ease" }
+    ]
   },
   {
     "type": "effect",

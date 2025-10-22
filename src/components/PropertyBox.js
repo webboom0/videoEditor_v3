@@ -1,5 +1,6 @@
 // src/components/PropertyBox.js
 import React, { useState, useRef, useEffect } from "react";
+import { getLayerDuration } from "../utils/layerUtils";
 
 export default function PropertyBox({
   layer,
@@ -752,10 +753,26 @@ export default function PropertyBox({
         <label>
           지속 시간:
           <input
-            type="number"
+            type="text"
             value={layer.duration}
-            onChange={(e) => handleChange("duration", Number(e.target.value))}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === 'auto' || val === 'AUTO') {
+                handleChange("duration", "auto");
+              } else {
+                const num = Number(val);
+                if (!isNaN(num)) {
+                  handleChange("duration", num);
+                }
+              }
+            }}
+            placeholder="숫자 또는 'auto'"
           />
+          {layer.duration === 'auto' && (
+            <span style={{ marginLeft: '5px', fontSize: '12px', color: '#888' }}>
+              (실제: {getLayerDuration(layer)}초)
+            </span>
+          )}
         </label>
       </div>
       <div>
@@ -1264,7 +1281,7 @@ export default function PropertyBox({
                       <input
                         type="number"
                         min={0}
-                        max={layer.duration}
+                        max={getLayerDuration(layer)}
                         value={kf.time}
                         onChange={(e) => {
                           const newAnim = [...layer.animation];
@@ -1366,7 +1383,7 @@ export default function PropertyBox({
                     ] || { time: 0, x: 0, y: 0, scale: 1 };
                     const newKF = {
                       ...last,
-                      time: Math.min((last.time ?? 0) + 1, layer.duration),
+                      time: Math.min((last.time ?? 0) + 1, getLayerDuration(layer)),
                     };
                     handleChange("animation", [...layer.animation, newKF]);
                   }}
