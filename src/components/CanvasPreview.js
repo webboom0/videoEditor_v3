@@ -189,7 +189,8 @@ export default function CanvasPreview({
             radiusY: layer.mask.radiusY ?? 100,
             width: layer.mask.width ?? 200,
             height: layer.mask.height ?? 200,
-            progress: layer.mask.progress ?? 0
+            progress: layer.mask.progress ?? 0,
+            rotation: layer.mask.rotation ?? 0
           };
 
           if (Array.isArray(layer.mask.animation) && layer.mask.animation.length > 0) {
@@ -242,7 +243,15 @@ export default function CanvasPreview({
               if (prev.progress !== undefined && next.progress !== undefined) {
                 maskProps.progress = prev.progress + (next.progress - prev.progress) * t;
               }
+              if (prev.rotation !== undefined && next.rotation !== undefined) {
+                maskProps.rotation = prev.rotation + (next.rotation - prev.rotation) * t;
+              }
             }
+          }
+
+          // 마스크 회전이 있으면 적용 (레이어 회전에 추가)
+          if (maskProps.rotation !== 0) {
+            ctx.rotate(maskProps.rotation);
           }
 
           ctx.beginPath();
@@ -261,6 +270,34 @@ export default function CanvasPreview({
             else if (layer.mask.verticalAlign === "bottom") maskY = maskProps.y - maskProps.height;
             
             ctx.rect(maskX, maskY, maskProps.width, maskProps.height);
+          } else if (layer.mask.type === "roundRect") {
+            // 라운드 처리된 사각형
+            let maskX = maskProps.x - maskProps.width / 2;
+            let maskY = maskProps.y - maskProps.height / 2;
+            
+            if (layer.mask.align === "left") maskX = maskProps.x;
+            else if (layer.mask.align === "right") maskX = maskProps.x - maskProps.width;
+            if (layer.mask.verticalAlign === "top") maskY = maskProps.y;
+            else if (layer.mask.verticalAlign === "bottom") maskY = maskProps.y - maskProps.height;
+            
+            const radius = maskProps.radius || layer.mask.borderRadius || 20;
+            
+            if (ctx.roundRect) {
+              // 최신 브라우저의 roundRect API 사용
+              ctx.roundRect(maskX, maskY, maskProps.width, maskProps.height, radius);
+            } else {
+              // 폴백: 수동으로 라운드 사각형 그리기
+              const r = Math.min(radius, maskProps.width / 2, maskProps.height / 2);
+              ctx.moveTo(maskX + r, maskY);
+              ctx.lineTo(maskX + maskProps.width - r, maskY);
+              ctx.arcTo(maskX + maskProps.width, maskY, maskX + maskProps.width, maskY + r, r);
+              ctx.lineTo(maskX + maskProps.width, maskY + maskProps.height - r);
+              ctx.arcTo(maskX + maskProps.width, maskY + maskProps.height, maskX + maskProps.width - r, maskY + maskProps.height, r);
+              ctx.lineTo(maskX + r, maskY + maskProps.height);
+              ctx.arcTo(maskX, maskY + maskProps.height, maskX, maskY + maskProps.height - r, r);
+              ctx.lineTo(maskX, maskY + r);
+              ctx.arcTo(maskX, maskY, maskX + r, maskY, r);
+            }
           } else if (layer.mask.type === "horizontal") {
             // 좌우로 열림
             const halfWidth = (width * maskProps.progress) / 2;

@@ -33,7 +33,7 @@
     "fontFamily": "Arial",
     "animation": [
       { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
-      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+      { "time": 1, "x": 300, "y": 0, "scale": 1, "opacity": 1 }
     ]
   },
   {
@@ -50,8 +50,8 @@
     "mask": {
       "type": "horizontal",
       "animation": [
-        { "time": 0, "progress": 0 },
-        { "time": 2, "progress": 1 }
+        { "time": 0,  "x": 0, "y": 0, "scale": 1, "progress": 0 },
+        { "time": 2,  "x": 200, "y": 0, "scale": 1, "progress": 1 }
       ]
     }
   },
@@ -105,7 +105,7 @@
     "fontFamily": "Arial",
     "animation": [
       { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
-      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+      { "time": 1, "x": 300, "y": 0, "scale": 1, "opacity": 1 }
     ]
   },
   {
@@ -218,6 +218,79 @@
       { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
       { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
     ]
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_07.jpg",
+    "x": 400,
+    "y": 300,
+    "align": "left",
+    "verticalAlign": "top",
+    "start": 51,
+    "duration": 20,
+    "scale": 1,
+    "scaleMode": "fit",
+    "borderRadius": 20,
+    "mask": {
+      "type": "roundRect",
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "rotation": -0.785, "width": 0, "height": 3400 },
+        { "time": 2, "x":100, "y": 0, "rotation": -0.785, "width": 800, "height": 3400 },
+        { "time": 4, "x": 0, "y": 0, "rotation": -0.785, "width": 600, "height": 3400 },
+        { "time": 6, "x": 200, "y": 0, "rotation": -0.785, "width": 1920, "height": 3400 }
+      ]
+    }
+  },
+  {
+    "type": "image",
+    "src": "/files/photo/photo_07.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 41,
+    "duration": "auto",
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "roundRect",
+      "borderRadius": 20,
+      "animation": [
+        { "time": 0, "x": -600, "y": -300, "width": 200, "height": 150, "radius": 10 },
+        { "time": 2, "x": 0, "y": 0, "width": 800, "height": 600, "radius": 50 },
+        { "time": 4, "x": 600, "y": 300, "width": 300, "height": 200, "radius": 80 },
+        { "time": 6, "x": 0, "y": 0, "width": 1920, "height": 1080, "radius": 0 }
+      ]
+    }
+  },
+  {
+    "type": "text",
+    "text": "라운드 사각형 마스크",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "bottom",
+    "start": 31,
+    "duration": 6,
+    "color": "#ffffff",
+    "fontSize": 40,
+    "fontFamily": "Arial",
+    "animation": [
+      { "time": 0, "x": 0, "y": 0, "scale": 1, "opacity": 0 },
+      { "time": 1, "x": 0, "y": 0, "scale": 1, "opacity": 1 }
+    ]
+  },
+  {
+    "type": "effect",
+    "effectType": "flash",
+    "x": 0,
+    "y": 0,
+    "width": 640,
+    "height": 360,
+    "start": 31,
+    "duration": 0.3,
+    "color": "#fff",
+    "intensity": 0.7
   },
   {
     "type": "effect",

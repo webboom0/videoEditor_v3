@@ -332,7 +332,97 @@ function renderImageProperties(layer, index) {
                 </select>
             </div>
         </div>
+        ${renderMaskProperties(layer, index)}
     `;
+}
+
+// 마스크 속성
+function renderMaskProperties(layer, index) {
+    const hasMask = layer.mask && typeof layer.mask === 'object';
+    const maskType = hasMask ? (layer.mask.type || 'circle') : 'circle';
+    
+    return `
+        <div class="form-section">
+            <h3>마스크 설정</h3>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" ${hasMask ? 'checked' : ''} onchange="toggleMask(${index}, this.checked)">
+                    마스크 사용
+                </label>
+            </div>
+            ${hasMask ? `
+                <div class="form-group">
+                    <label>마스크 타입</label>
+                    <select onchange="updateMaskProperty(${index}, 'type', this.value)">
+                        <option value="circle" ${maskType === 'circle' ? 'selected' : ''}>원형</option>
+                        <option value="ellipse" ${maskType === 'ellipse' ? 'selected' : ''}>타원형</option>
+                        <option value="rect" ${maskType === 'rect' ? 'selected' : ''}>사각형</option>
+                        <option value="roundRect" ${maskType === 'roundRect' ? 'selected' : ''}>라운드 사각형</option>
+                        <option value="horizontal" ${maskType === 'horizontal' ? 'selected' : ''}>좌우 열림</option>
+                        <option value="vertical" ${maskType === 'vertical' ? 'selected' : ''}>상하 열림</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>마스크 애니메이션</label>
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #3c3c3c; padding: 10px; border-radius: 4px;">
+                        ${renderMaskAnimation(layer, index)}
+                    </div>
+                    <button type="button" onclick="addMaskKeyframe(${index})" style="margin-top: 5px; width: 100%;">+ 키프레임 추가</button>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// 마스크 애니메이션 렌더링
+function renderMaskAnimation(layer, index) {
+    if (!layer.mask || !Array.isArray(layer.mask.animation)) {
+        return '<p style="color: #888;">키프레임이 없습니다.</p>';
+    }
+    
+    const maskType = layer.mask.type || 'circle';
+    
+    return layer.mask.animation.map((kf, kfIndex) => {
+        let fields = `<span>time: <input type="number" step="0.1" value="${kf.time || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'time', parseFloat(this.value))" style="width: 60px;"></span>`;
+        
+        // 타입별 필드
+        if (maskType === 'circle') {
+            fields += `
+                <span>x: <input type="number" value="${kf.x || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'x', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>y: <input type="number" value="${kf.y || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'y', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>radius: <input type="number" value="${kf.radius || 100}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'radius', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>rotation: <input type="number" step="0.1" value="${kf.rotation || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'rotation', parseFloat(this.value))" style="width: 60px;" title="라디안"></span>
+            `;
+        } else if (maskType === 'ellipse') {
+            fields += `
+                <span>x: <input type="number" value="${kf.x || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'x', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>y: <input type="number" value="${kf.y || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'y', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>radiusX: <input type="number" value="${kf.radiusX || 100}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'radiusX', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>radiusY: <input type="number" value="${kf.radiusY || 100}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'radiusY', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>rotation: <input type="number" step="0.1" value="${kf.rotation || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'rotation', parseFloat(this.value))" style="width: 60px;" title="라디안"></span>
+            `;
+        } else if (maskType === 'rect' || maskType === 'roundRect') {
+            fields += `
+                <span>x: <input type="number" value="${kf.x || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'x', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>y: <input type="number" value="${kf.y || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'y', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>width: <input type="number" value="${kf.width || 200}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'width', parseFloat(this.value))" style="width: 60px;"></span>
+                <span>height: <input type="number" value="${kf.height || 200}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'height', parseFloat(this.value))" style="width: 60px;"></span>
+            `;
+            if (maskType === 'roundRect') {
+                fields += `<span>radius: <input type="number" value="${kf.radius || 20}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'radius', parseFloat(this.value))" style="width: 60px;"></span>`;
+            }
+            fields += `<span>rotation: <input type="number" step="0.1" value="${kf.rotation || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'rotation', parseFloat(this.value))" style="width: 60px;" title="라디안"></span>`;
+        } else if (maskType === 'horizontal' || maskType === 'vertical') {
+            fields += `<span>progress: <input type="number" step="0.1" min="0" max="1" value="${kf.progress || 0}" onchange="updateMaskKeyframe(${index}, ${kfIndex}, 'progress', parseFloat(this.value))" style="width: 60px;"></span>`;
+        }
+        
+        return `
+            <div style="margin-bottom: 8px; padding: 8px; background: #2d2d30; border-radius: 4px;">
+                ${fields}
+                <button type="button" onclick="removeMaskKeyframe(${index}, ${kfIndex})" style="margin-left: 5px; padding: 2px 8px;">삭제</button>
+            </div>
+        `;
+    }).join('');
 }
 
 // 도형 속성
@@ -739,6 +829,116 @@ function editChildLayer(parentIndex, childIndex) {
 // 레이어 속성 업데이트
 function updateLayerProperty(index, property, value) {
     layers[index][property] = value;
+    renderLayersList();
+}
+
+// 마스크 토글
+function toggleMask(index, enabled) {
+    if (enabled) {
+        layers[index].mask = {
+            type: 'circle',
+            animation: [
+                { time: 0, x: 0, y: 0, radius: 100 },
+                { time: 2, x: 0, y: 0, radius: 500 }
+            ]
+        };
+    } else {
+        delete layers[index].mask;
+    }
+    renderEditor();
+    renderLayersList();
+}
+
+// 마스크 속성 업데이트
+function updateMaskProperty(index, property, value) {
+    if (!layers[index].mask) return;
+    
+    layers[index].mask[property] = value;
+    
+    // 타입이 변경되면 기본 애니메이션 재생성
+    if (property === 'type') {
+        const maskType = value;
+        if (maskType === 'circle') {
+            layers[index].mask.animation = [
+                { time: 0, x: 0, y: 0, radius: 100 },
+                { time: 2, x: 0, y: 0, radius: 500 }
+            ];
+        } else if (maskType === 'ellipse') {
+            layers[index].mask.animation = [
+                { time: 0, x: 0, y: 0, radiusX: 100, radiusY: 100 },
+                { time: 2, x: 0, y: 0, radiusX: 500, radiusY: 300 }
+            ];
+        } else if (maskType === 'rect') {
+            layers[index].mask.animation = [
+                { time: 0, x: 0, y: 0, width: 200, height: 200 },
+                { time: 2, x: 0, y: 0, width: 800, height: 600 }
+            ];
+        } else if (maskType === 'roundRect') {
+            layers[index].mask.animation = [
+                { time: 0, x: 0, y: 0, width: 200, height: 200, radius: 20 },
+                { time: 2, x: 0, y: 0, width: 800, height: 600, radius: 50 }
+            ];
+        } else if (maskType === 'horizontal' || maskType === 'vertical') {
+            layers[index].mask.animation = [
+                { time: 0, progress: 0 },
+                { time: 2, progress: 1 }
+            ];
+        }
+    }
+    
+    renderEditor();
+    renderLayersList();
+}
+
+// 마스크 키프레임 추가
+function addMaskKeyframe(index) {
+    if (!layers[index].mask) return;
+    
+    const mask = layers[index].mask;
+    const maskType = mask.type || 'circle';
+    
+    if (!Array.isArray(mask.animation)) {
+        mask.animation = [];
+    }
+    
+    const lastKf = mask.animation[mask.animation.length - 1] || {};
+    const lastTime = lastKf.time || 0;
+    
+    let newKf = { time: lastTime + 1 };
+    
+    // 타입별 기본값
+    if (maskType === 'circle') {
+        newKf = { ...newKf, x: lastKf.x || 0, y: lastKf.y || 0, radius: lastKf.radius || 100 };
+    } else if (maskType === 'ellipse') {
+        newKf = { ...newKf, x: lastKf.x || 0, y: lastKf.y || 0, radiusX: lastKf.radiusX || 100, radiusY: lastKf.radiusY || 100 };
+    } else if (maskType === 'rect' || maskType === 'roundRect') {
+        newKf = { ...newKf, x: lastKf.x || 0, y: lastKf.y || 0, width: lastKf.width || 200, height: lastKf.height || 200 };
+        if (maskType === 'roundRect') {
+            newKf.radius = lastKf.radius || 20;
+        }
+    } else if (maskType === 'horizontal' || maskType === 'vertical') {
+        newKf = { ...newKf, progress: lastKf.progress || 0 };
+    }
+    
+    mask.animation.push(newKf);
+    renderEditor();
+    renderLayersList();
+}
+
+// 마스크 키프레임 업데이트
+function updateMaskKeyframe(layerIndex, kfIndex, property, value) {
+    if (!layers[layerIndex].mask || !layers[layerIndex].mask.animation) return;
+    
+    layers[layerIndex].mask.animation[kfIndex][property] = value;
+    renderLayersList();
+}
+
+// 마스크 키프레임 삭제
+function removeMaskKeyframe(layerIndex, kfIndex) {
+    if (!layers[layerIndex].mask || !layers[layerIndex].mask.animation) return;
+    
+    layers[layerIndex].mask.animation.splice(kfIndex, 1);
+    renderEditor();
     renderLayersList();
 }
 
