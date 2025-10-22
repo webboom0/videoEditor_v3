@@ -288,5 +288,86 @@
         { "time": 3, "x": 0, "y": 0, "scale": 1, "rotation": 0, "opacity": 1 },
         { "time": 4, "x": -1980, "y": 0, "scale": 1, "rotation": 0, "opacity": 1, "easing": "easeOutQuad" }
       ] 
-  }  
+  }  ,
+  {
+    "type": "image",
+    "src": "/files/images/clip_01-ext/cexit8.png",
+    "x": 0,
+    "y": 0,
+    "align": "top",
+    "verticalAlign": "middle",
+    "start": 41,
+    "duration": 20,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "roundRect",
+      "borderRadius": 20,
+      "animation": [
+        { "time": 0, "x": 0, "y": 0, "width": 1000, "height": 0, "radius": 10 , "rotation": 45  },
+        { "time": 2, "x": 0, "y": 0, "width": 1000, "height": 400, "radius": 50 , "rotation": 45  }  
+      ]
+    }
+  },
+  {
+    "type": "image",
+    "src": "/files/images/clip_01-ext/cexit5.png",
+    "x": 400,
+    "y": 10,
+    "align": "top",
+    "verticalAlign": "middle",
+    "start": 42,
+    "duration": 20,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "roundRect",
+      "borderRadius": 20,
+      "animation": [
+        { "time": 0, "x": 250, "y": 0, "width": 1000, "height": 0, "radius": 10 , "rotation": 45  },
+        { "time": 2, "x": 250, "y": 0, "width": 1000, "height": 800, "radius": 50 , "rotation": 45  }  
+      ]
+    }
+  },
+  {
+    "type": "image",
+    "src": "/files/images/clip_01-ext/cexit4.png",
+    "x": 1100,
+    "y": -400,
+    "align": "top",
+    "verticalAlign": "middle",
+    "start": 42,
+    "duration": 20,
+    "scale": 1,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "roundRect",
+      "borderRadius": 20,
+      "animation": [
+        { "time": 0, "x": 250, "y": 0, "width": 1000, "height": 0, "radius": 10 , "rotation": 45  },
+        { "time": 2, "x": 250, "y": 0, "width": 1000, "height": 800, "radius": 50 , "rotation": 45  }  
+      ]
+    }
+  },
+  {
+    "type": "image",
+    "src": "/files/images/clip_01-ext/cexit3.png",
+    "x": 1100,
+    "y": 900,
+    "align": "top",
+    "verticalAlign": "middle",
+    "start": 44,
+    "duration": 20,
+    "scale": 1,
+    "rotation": 45,
+    "scaleMode": "fit",
+    "mask": {
+      "type": "roundRect",
+      "borderRadius": 20,
+      "animation": [
+        { "time": 0, "x": 250, "y": 0, "width": 1000, "height": 0, "radius": 10 , "rotation": 45  },
+        { "time": 2, "x": 250, "y": 0, "width": 1000, "height": 800, "radius": 50 , "rotation": 45  }  
+      ]
+    }
+  }
 ]
