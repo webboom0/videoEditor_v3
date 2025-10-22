@@ -180,25 +180,100 @@ export default function CanvasPreview({
 
         // 마스크가 있는 경우
         if (layer.mask) {
+          // 마스크 애니메이션 처리
+          let maskProps = {
+            x: layer.mask.x ?? 0,
+            y: layer.mask.y ?? 0,
+            radius: layer.mask.radius ?? 100,
+            radiusX: layer.mask.radiusX ?? 100,
+            radiusY: layer.mask.radiusY ?? 100,
+            width: layer.mask.width ?? 200,
+            height: layer.mask.height ?? 200,
+            progress: layer.mask.progress ?? 0
+          };
+
+          if (Array.isArray(layer.mask.animation) && layer.mask.animation.length > 0) {
+            const relTime = currentTime - layer.start;
+            const maskAnim = layer.mask.animation;
+            
+            if (relTime <= maskAnim[0].time) {
+              // 첫 번째 키프레임 이전
+              maskProps = { ...maskProps, ...maskAnim[0] };
+            } else if (relTime >= maskAnim[maskAnim.length - 1].time) {
+              // 마지막 키프레임 이후
+              maskProps = { ...maskProps, ...maskAnim[maskAnim.length - 1] };
+            } else {
+              // 키프레임 사이 보간
+              let prev = maskAnim[0];
+              let next = maskAnim[maskAnim.length - 1];
+              
+              for (let i = 1; i < maskAnim.length; i++) {
+                if (maskAnim[i].time > relTime) {
+                  next = maskAnim[i];
+                  prev = maskAnim[i - 1];
+                  break;
+                }
+              }
+              
+              const t = (relTime - prev.time) / (next.time - prev.time);
+              
+              // 각 속성 보간
+              if (prev.x !== undefined && next.x !== undefined) {
+                maskProps.x = prev.x + (next.x - prev.x) * t;
+              }
+              if (prev.y !== undefined && next.y !== undefined) {
+                maskProps.y = prev.y + (next.y - prev.y) * t;
+              }
+              if (prev.radius !== undefined && next.radius !== undefined) {
+                maskProps.radius = prev.radius + (next.radius - prev.radius) * t;
+              }
+              if (prev.radiusX !== undefined && next.radiusX !== undefined) {
+                maskProps.radiusX = prev.radiusX + (next.radiusX - prev.radiusX) * t;
+              }
+              if (prev.radiusY !== undefined && next.radiusY !== undefined) {
+                maskProps.radiusY = prev.radiusY + (next.radiusY - prev.radiusY) * t;
+              }
+              if (prev.width !== undefined && next.width !== undefined) {
+                maskProps.width = prev.width + (next.width - prev.width) * t;
+              }
+              if (prev.height !== undefined && next.height !== undefined) {
+                maskProps.height = prev.height + (next.height - prev.height) * t;
+              }
+              if (prev.progress !== undefined && next.progress !== undefined) {
+                maskProps.progress = prev.progress + (next.progress - prev.progress) * t;
+              }
+            }
+          }
+
           ctx.beginPath();
-          if (layer.mask.type === "rect") {
-            const maskW = layer.mask.width ?? 200;
-            const maskH = layer.mask.height ?? 200;
-            let maskX = -maskW / 2;
-            let maskY = -maskH / 2;
+          
+          if (layer.mask.type === "circle") {
+            ctx.arc(maskProps.x, maskProps.y, maskProps.radius, 0, Math.PI * 2);
+          } else if (layer.mask.type === "ellipse") {
+            ctx.ellipse(maskProps.x, maskProps.y, maskProps.radiusX, maskProps.radiusY, 0, 0, Math.PI * 2);
+          } else if (layer.mask.type === "rect") {
+            let maskX = maskProps.x - maskProps.width / 2;
+            let maskY = maskProps.y - maskProps.height / 2;
             
-            if (layer.mask.align === "left") maskX = 0;
-            else if (layer.mask.align === "right") maskX = -maskW;
-            if (layer.mask.verticalAlign === "top") maskY = 0;
-            else if (layer.mask.verticalAlign === "bottom") maskY = -maskH;
+            if (layer.mask.align === "left") maskX = maskProps.x;
+            else if (layer.mask.align === "right") maskX = maskProps.x - maskProps.width;
+            if (layer.mask.verticalAlign === "top") maskY = maskProps.y;
+            else if (layer.mask.verticalAlign === "bottom") maskY = maskProps.y - maskProps.height;
             
-            ctx.rect(maskX, maskY, maskW, maskH);
-          } else if (layer.mask.type === "circle") {
-            const radius = layer.mask.radius ?? 100;
-            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.rect(maskX, maskY, maskProps.width, maskProps.height);
+          } else if (layer.mask.type === "horizontal") {
+            // 좌우로 열림
+            const halfWidth = (width * maskProps.progress) / 2;
+            ctx.rect(-width / 2, -height / 2, halfWidth, height);
+            ctx.rect(width / 2 - halfWidth, -height / 2, halfWidth, height);
+          } else if (layer.mask.type === "vertical") {
+            // 상하로 열림
+            const halfHeight = (height * maskProps.progress) / 2;
+            ctx.rect(-width / 2, -height / 2, width, halfHeight);
+            ctx.rect(-width / 2, height / 2 - halfHeight, width, halfHeight);
           }
           
-          // 마스크 색상 적용
+          // 마스크 색상 적용 (디버그용)
           if (layer.mask.fillColor) {
             ctx.fillStyle = layer.mask.fillColor;
             ctx.fill();
