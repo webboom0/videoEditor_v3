@@ -69,6 +69,7 @@ export default function CanvasPreview({
   onLayerDoubleClick,
 }) {
   const canvasRef = useRef(null);
+  const videoRefs = useRef({});
   const layerRects = useRef([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -764,6 +765,146 @@ export default function CanvasPreview({
         
         ctx.restore();
       }
+    } else if (layer.type === "video") {
+      // 비디오 레이어 렌더링
+      let video = videoRefs.current[layer.src];
+      if (!video) {
+        video = document.createElement("video");
+        video.src = layer.src;
+        video.crossOrigin = "anonymous";
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = "auto";
+        
+        // 모든 비디오에 이벤트 리스너 추가 (디버깅용)
+        video.addEventListener('loadedmetadata', () => {
+          console.log('Video metadata loaded:', layer.src, video.videoWidth, video.videoHeight, 'readyState:', video.readyState);
+        });
+        
+        video.addEventListener('loadeddata', () => {
+          console.log('Video data loaded:', layer.src, 'readyState:', video.readyState);
+        });
+        
+        video.addEventListener('canplay', () => {
+          console.log('Video canplay:', layer.src, 'readyState:', video.readyState);
+        });
+        
+        video.addEventListener('error', (e) => {
+          console.error('Video error:', layer.src, e, video.error);
+        });
+        
+        video.load();
+        videoRefs.current[layer.src] = video;
+      }
+
+      // 비디오가 로드되었는지 확인
+      const videoW = video.videoWidth;
+      const videoH = video.videoHeight;
+
+      if (videoW && videoH) {
+        // 디버깅: 비디오 로드 상태 확인
+        if (layer.src.includes('transparent')) {
+          console.log('Transparent video:', {
+            src: layer.src,
+            width: videoW,
+            height: videoH,
+            readyState: video.readyState,
+            duration: video.duration,
+            currentTime: video.currentTime,
+            targetTime: Math.max(0, currentTime - layer.start),
+            isRendering: Math.max(0, currentTime - layer.start) < video.duration
+          });
+        }
+        // 비디오 현재 시간 설정
+        const targetTime = Math.max(0, currentTime - layer.start);
+        
+        // 비디오 duration 확인
+        const videoDuration = video.duration || Infinity;
+        
+        // 현재 비디오 시간과 목표 시간의 차이가 클 때만 업데이트
+        // 0.1초 차이는 프레임 단위로 충분히 부드럽게 보임
+        if (targetTime < videoDuration && Math.abs(video.currentTime - targetTime) > 0.1) {
+          video.currentTime = targetTime;
+        }
+        
+        // 목표 시간이 비디오 길이를 넘어가면 그냥 마지막 프레임 유지
+        if (targetTime >= videoDuration) {
+          // 비디오의 마지막 프레임 유지
+          if (Math.abs(video.currentTime - (videoDuration - 0.1)) > 0.1) {
+            video.currentTime = videoDuration - 0.1;
+          }
+        }
+
+        // 비디오 스케일 계산
+        let baseScale = scale;
+        if (layer.scaleMode === "fit") {
+          baseScale = Math.min(width / videoW, height / videoH);
+        } else if (layer.scaleMode === "cover") {
+          baseScale = Math.max(width / videoW, height / videoH);
+        }
+        
+        const renderScale = baseScale * animScale;
+
+        // 정렬
+        let anchorX = x;
+        let anchorY = y;
+        if (anchorX === 0 && layer.align === "center") anchorX = width / 2;
+        else if (anchorX === 0 && layer.align === "right") anchorX = width;
+        if (anchorY === 0 && layer.verticalAlign === "middle") anchorY = height / 2;
+        else if (anchorY === 0 && layer.verticalAlign === "bottom") anchorY = height;
+
+        const finalX = anchorX + animOffsetX;
+        const finalY = anchorY + animOffsetY;
+
+        // 그리기
+        ctx.save();
+        
+        ctx.globalAlpha = animOpacity * (layer.opacity ?? 1);
+        ctx.translate(finalX, finalY);
+        ctx.rotate(animRotation);
+        ctx.scale(renderScale, renderScale);
+        
+        const drawX = layer.align === "center" ? -videoW / 2 : (layer.align === "right" ? -videoW : 0);
+        const drawY = layer.verticalAlign === "middle" ? -videoH / 2 : (layer.verticalAlign === "bottom" ? -videoH : 0);
+
+        // 이미지 스무딩 설정 (알파 채널 렌더링 품질 향상)
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        
+        // transparent 파일인 경우 chromakey 처리
+        if (layer.src.includes('transparent')) {
+          // 임시 캔버스에 그리기
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = videoW;
+          tempCanvas.height = videoH;
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCtx.drawImage(video, 0, 0, videoW, videoH);
+          
+          // 이미지 데이터 가져오기
+          const imageData = tempCtx.getImageData(0, 0, videoW, videoH);
+          const data = imageData.data;
+          
+          // 검정색을 투명하게 만들기
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            
+            // 검정색에 가까운 픽셀을 투명하게 (threshold: 80)
+            // 더 넓은 범위의 검정색을 제거
+            if (r < 80 && g < 80 && b < 80) {
+              data[i + 3] = 0; // alpha를 0으로
+            }
+          }
+          
+          // 수정된 이미지 데이터를 다시 캔버스에 그리기
+          tempCtx.putImageData(imageData, 0, 0);
+          ctx.drawImage(tempCanvas, drawX, drawY, videoW, videoH);
+        } else {
+          ctx.drawImage(video, drawX, drawY, videoW, videoH);
+        }
+        ctx.restore();
+      }
     }
 
     ctx.restore();
@@ -796,7 +937,15 @@ export default function CanvasPreview({
     // 레이어 렌더링
     layers.forEach((layer, idx) => {
       if (layer.type === "text") return; // 텍스트는 나중에
+      if (layer.type === "video") return; // 비디오는 나중에 (애니메이션 적용 전)
       renderLayer(layer, ctx, canvasWidth, canvasHeight, currentTime, setZoom);
+    });
+
+    // 비디오 레이어 렌더링 (이미지 뒤)
+    layers.forEach((layer, idx) => {
+      if (layer.type === "video") {
+        renderLayer(layer, ctx, canvasWidth, canvasHeight, currentTime, setZoom);
+      }
     });
 
     // 텍스트 레이어는 항상 맨 위에 그림

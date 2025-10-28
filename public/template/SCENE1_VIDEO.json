@@ -1,0 +1,64 @@
+[
+  {
+    "type": "image",
+    "src": "/files/photo/photo_03.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 20,
+    "scale": 1,
+    "scaleMode": "cover",
+    "opacity": 1
+  },
+  {
+    "type": "video",
+    "src": "/files/video/scene1-2-transparent.webm",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 0,
+    "duration": 20,
+    "scale": 1,
+    "scaleMode": "cover",
+    "opacity": 1
+  },
+  
+  {
+    "type": "image",
+    "src": "/files/photo/photo_02.jpg",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 20,
+    "duration": 20,
+    "scale": 1,
+    "scaleMode": "cover",
+    "opacity": 1,
+    "animation": [
+      { "time": 20, "x": 0, "y": 0, "scale": 1, "opacity": 1 },
+      { "time": 22, "x": 0, "y": 0, "scale": 1.1, "opacity": 1, "easing": "easeOutQuad" }
+    ]
+  },
+  {
+    "type": "video",
+    "src": "/files/video/scene2-1-transparent.webm",
+    "x": 0,
+    "y": 0,
+    "align": "center",
+    "verticalAlign": "middle",
+    "start": 20,
+    "duration": 20,
+    "scale": 1.2,
+    "scaleMode": "cover",
+    "opacity": 1,
+    "animation": [
+      { "time": 20, "x": 0, "y": 0, "scale": 1.2, "opacity": 1 },
+      { "time": 22, "x": 100, "y": 50, "scale": 1, "opacity": 1, "easing": "easeOutQuad" }
+    ]
+  }
+]
+
